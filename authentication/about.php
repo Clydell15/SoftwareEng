@@ -1,55 +1,3 @@
-<?php
-if (session_status() === PHP_SESSION_NONE) { session_start(); }
-include '../config db.php';
-
-$error = "";
-
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $action = $_POST['action'];
-    $email = trim($_POST['email']);
-    $password = trim($_POST['password']);
-
-    if ($action == "login") {
-        $stmt = $conn->prepare("SELECT id, password FROM users WHERE email = ?");
-        $stmt->bind_param("s", $email);
-        $stmt->execute();
-        $result = $stmt->get_result();
-
-        if ($result->num_rows > 0) {
-            $user = $result->fetch_assoc();
-            if (password_verify($password, $user['password'])) {
-                $_SESSION['user_id'] = $user['id'];
-                header("Location: ../taskflow/dashboard.php");
-                exit();
-            } else {
-                $error = "Invalid password";
-            }
-        } else {
-            $error = "User not found";
-        }
-    } elseif ($action == "signup") {
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $error = "Invalid email format";
-        } elseif (strlen($password) < 6) {
-            $error = "Password must be at least 6 characters long";
-        } else {
-            $hashed_password = password_hash($password, PASSWORD_BCRYPT);
-            $stmt = $conn->prepare("INSERT INTO users (email, password) VALUES (?, ?)");
-            $stmt->bind_param("ss", $email, $hashed_password);
-            if ($stmt->execute()) {
-                header("Location: auth.php?success=registered");
-                exit();
-            } else {
-                $error = "Error creating account";
-            }
-        }
-    }
-} elseif (isset($_SESSION['user_id'])) {
-    header("Location: ../taskflow/dashboard.php");
-    exit();
-}
-?>
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -131,11 +79,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 loginButton.classList.remove('active');
             }
         }
-
-        // Initially set active class based on default state (login)
-        window.onload = function() {
-            toggleForm('login');
-        };
     </script>
 </body>
 </html>

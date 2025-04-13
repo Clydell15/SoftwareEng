@@ -1,6 +1,6 @@
 <?php
 if (!isset($_SESSION['user_id'])) {
-    header("Location: authentication/login.php");
+    header("Location: authentication/auth.php");
     exit();
 }
 ?>

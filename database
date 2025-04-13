@@ -12,6 +12,8 @@ CREATE TABLE users (
 );
 
 /* VERSION 0.1 */
+
+
 -- adding other tables as well in preparation for the next version --
 
 -- Tags Table

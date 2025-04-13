@@ -1,8 +1,8 @@
 version 0.2
-1) Login Signup design.
-2) side bar for all pages in Task Flow
-3) Placeholder for view on each pages
-4) View Panes for pages and design for each page.
+1) Login Signup design. 
+2) side bar for all pages in Task Flow (DONE)
+3) Placeholder for view on each pages (DONE)
+4) View Panes for pages and design for each page. (DONE)
 
 version 0.3
 1) Home and About page.
