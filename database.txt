@@ -17,7 +17,10 @@ CREATE TABLE users (
     long_breaks INT DEFAULT 0,
     pomodoro_goal INT DEFAULT 8
 );
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
 -- Tags Table
 CREATE TABLE tags (
     id INT PRIMARY KEY AUTO_INCREMENT,
@@ -27,6 +30,10 @@ CREATE TABLE tags (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+<<<<<<< Updated upstream
+=======
+-- Tasks Table
+>>>>>>> Stashed changes
 -- Tasks Table (updated with due_date)
 CREATE TABLE tasks (
     id INT PRIMARY KEY AUTO_INCREMENT,
@@ -130,4 +137,8 @@ BEGIN
     END IF;
 END$$
 
+DELIMITER ;<<<<<<< Updated upstream
 DELIMITER ;
+=======
+DELIMITER ;
+>>>>>>> Stashed changes

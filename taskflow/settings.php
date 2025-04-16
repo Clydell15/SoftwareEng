@@ -37,13 +37,13 @@ $user = $_SESSION['user'];
                     <div class="card-body d-flex flex-column justify-content-between" style="flex: 1;">
                         <form id="account-settings-form" action="../taskflow/component functions/update_account.php" method="POST" class="d-flex flex-column gap-4 flex-grow-1">
                             <div>
-                                <label for="email" class="form-label">New Email</label>
+                                <label for="email" class="form-label">Email</label>
                                 <input type="email" id="email" name="email" class="form-control" value="<?= htmlspecialchars($user['email']) ?>" readonly required>
                             </div>
 
                             <div>
-                                <label for="old_password" class="form-label">Old Password</label>
-                                <input type="password" id="old_password" name="old_password" class="form-control" value="" readonly required>
+                                <label for="old_password" class="form-label">Password</label>
+                                <input type="password" id="old_password" name="old_password" class="form-control" value="" placeholder="Input password"readonly required>
                             </div>
 
                             <div id="new_password_div" class="d-none">
