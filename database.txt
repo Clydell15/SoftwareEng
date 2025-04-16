@@ -137,8 +137,4 @@ BEGIN
     END IF;
 END$$
 
-<<<<<<< Updated upstream
 DELIMITER ;
-=======
-DELIMITER ;
->>>>>>> Stashed changes
