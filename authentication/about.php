@@ -13,32 +13,21 @@
 <body class="auth-page">
     <?php include '../taskflow/component functions/navbar.php'; ?>
 
-    <div class="auth-container">
-        <div class="card">
-            <h2 class="text-center" id="form-title">Login</h2>
-            <form method="POST" action="auth.php">
-                <input type="hidden" name="action" id="form-action" value="login">
-
-                <div class="mb-3">
-                    <input type="email" name="email" class="form-control rounded" placeholder="Email" required>
-                </div>
-                
-                <div class="mb-3">
-                    <input type="password" name="password" class="form-control rounded" placeholder="Password" required>
-                </div>
-                
-                <button type="submit" class="btn btn-secondary w-100 ">Sign In</button>
-
-                <p class="mt-3 text-center">
-                    Don't have an account? <a href="#" onclick="toggleForm('signup')" class='white-text'>Sign up</a>
-                </p>
-
-                <?php if (!empty($error)) echo "<p class='text-warning text-center'>$error</p>"; ?>
-            </form>
-        </div>
-
-
+    <div class="container-sm mt-3">
+        <img src="../assets/images/devTeam.jpg" class="rounded mx-auto d-block img-fluid" alt="Development Team">
     </div>
+
+    
+    <div class="container-fluid mt-3 d-flex justify-content-center">
+        <h2 class="text-center">Meet the brilliant minds behind the project!</h2>
+        <ul class="list-group">
+            <li class="list-group-item">John Patrick Palanas</li>
+            <li class="list-group-item">Rydell Clyde Serrano</li>
+            <li class="list-group-item">Gabriel Verzosa</li>
+        </ul>
+    </div>
+    
+
 
     <script>
         // Function to change the active link
