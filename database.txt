@@ -1,4 +1,4 @@
-/* VERSION 0.1 */
+/* VERSION 0.2 */
 
 CREATE DATABASE taskflow;
 USE taskflow;
@@ -8,13 +8,15 @@ CREATE TABLE users (
     id INT PRIMARY KEY AUTO_INCREMENT,
     email VARCHAR(255) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    pomodoro_sessions INT DEFAULT 0,
+    pomodoro_time INT DEFAULT 25,
+    shortbreak_time INT DEFAULT 5,
+    longbreak_time INT DEFAULT 15,
+    short_breaks INT DEFAULT 0,
+    long_breaks INT DEFAULT 0,
+    pomodoro_goal INT DEFAULT 8
 );
-
-/* VERSION 0.1 */
-
-
--- adding other tables as well in preparation for the next version --
 
 -- Tags Table
 CREATE TABLE tags (
@@ -25,7 +27,7 @@ CREATE TABLE tags (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- Tasks Table
+-- Tasks Table (updated with due_date)
 CREATE TABLE tasks (
     id INT PRIMARY KEY AUTO_INCREMENT,
     title VARCHAR(255) NOT NULL,
@@ -37,13 +39,14 @@ CREATE TABLE tasks (
     position INT NULL,
     user_id INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    due_date DATETIME DEFAULT NULL,
     completed_at DATETIME NULL,
     FOREIGN KEY (parent_task_id) REFERENCES tasks(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+
 -- Task Tags (Many-to-Many Relationship)
--- This table links tasks to tags, allowing a task to have multiple tags and a tag to be associated with multiple tasks.
 CREATE TABLE task_tags (
     id INT PRIMARY KEY AUTO_INCREMENT,
     task_id INT NOT NULL,
@@ -54,10 +57,7 @@ CREATE TABLE task_tags (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
-
--- delimeter trigger for setting difficulty level based on numeric value
--- This trigger sets the difficulty level based on the numeric value provided when inserting or updating a task.
-
+-- Trigger: Set difficulty level based on difficulty_numeric before INSERT
 DELIMITER $$
 
 CREATE TRIGGER set_difficulty_level
@@ -73,10 +73,11 @@ BEGIN
     ELSE
         SET NEW.difficulty_level = UPPER('Easy'); 
     END IF;
-END $$
+END$$
 
 DELIMITER ;
 
+-- Trigger: Update difficulty level on difficulty_numeric update
 DELIMITER $$
 
 CREATE TRIGGER update_difficulty_level
@@ -92,13 +93,11 @@ BEGIN
     ELSE
         SET NEW.difficulty_level = UPPER('Easy'); 
     END IF;
-END $$
+END$$
 
 DELIMITER ;
 
--- trigger for adding tags for a new user
--- This trigger automatically adds default tags for a new user when they are created.
-
+-- Trigger: Add default tags after user registration
 DELIMITER $$
 
 CREATE TRIGGER after_user_insert
@@ -116,6 +115,19 @@ BEGIN
         ('Errands', NEW.id),
         ('Creativity', NEW.id),
         ('Social', NEW.id);
+END$$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE TRIGGER set_due_date_default
+BEFORE INSERT ON tasks
+FOR EACH ROW
+BEGIN
+    IF NEW.due_date IS NULL THEN
+        SET NEW.due_date = DATE_ADD(DATE(NEW.created_at), INTERVAL 7 DAY) + INTERVAL 18 HOUR;
+    END IF;
 END$$
 
 DELIMITER ;
