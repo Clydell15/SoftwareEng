@@ -33,16 +33,28 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         } elseif (strlen($password) < 6) {
             $error = "Password must be at least 6 characters long";
         } else {
-            $hashed_password = password_hash($password, PASSWORD_BCRYPT);
-            $stmt = $conn->prepare("INSERT INTO users (email, password) VALUES (?, ?)");
-            $stmt->bind_param("ss", $email, $hashed_password);
-            if ($stmt->execute()) {
-                header("Location: auth.php?success=registered");
-                exit();
+            // Check if email already exists
+            $check = $conn->prepare("SELECT id FROM users WHERE email = ?");
+            $check->bind_param("s", $email);
+            $check->execute();
+            $checkResult = $check->get_result();
+        
+            if ($checkResult->num_rows > 0) {
+                $error = "An account with this email already exists";
             } else {
-                $error = "Error creating account";
+                $hashed_password = password_hash($password, PASSWORD_BCRYPT);
+                $stmt = $conn->prepare("INSERT INTO users (email, password) VALUES (?, ?)");
+                $stmt->bind_param("ss", $email, $hashed_password);
+        
+                if ($stmt->execute()) {
+                    header("Location: auth.php?success=registered");
+                    exit();
+                } else {
+                    $error = "Error creating account";
+                }
             }
         }
+        
     }
 } elseif (isset($_SESSION['user_id'])) {
     header("Location: ../taskflow/dashboard.php");

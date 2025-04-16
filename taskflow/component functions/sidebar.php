@@ -24,6 +24,24 @@ $username = $_SESSION['username'] ?? 'Guest';
         <a href="../taskflow/settings.php" class="nav-link <?php echo $current_page == 'settings.php' ? 'active' : ''; ?>">⚙️ Settings</a>
     </div>
 
+    <div id="pomodoro-widget" class="mt-4 p-2 border rounded bg-light shadow-sm">
+
+        <div class="d-flex justify-content-between mt-2">
+            <button id="btn-pomodoro" class="btn btn-sm btn-outline-primary session-btn w-33 me-1" onclick="setPomodoro()">Pomodoro</button>
+            <button id="btn-shortBreak" class="btn btn-sm btn-outline-success session-btn w-33 me-1" onclick="setShortBreak()">Short</button>
+            <button id="btn-longBreak" class="btn btn-sm btn-outline-warning session-btn w-33 session-btn" onclick="setLongBreak()">Long</button>
+        </div>
+        <h4 id="timer-display" class="text-center mb-2">00:00</h4>
+        <div class="d-flex justify-content-between mt-2">
+            <button id="start-btn" class="btn btn-sm btn-success w-50 me-1" onclick="togglePomodoro()">Start</button>
+            <button id="reset-btn" class="btn btn-sm btn-secondary w-50 ms-1" onclick="resetPomodoro()">Reset</button>
+        </div>
+        <button class="btn btn-sm btn-warning w-100 mt-2" onclick="showNotification('This is a test notification!')">🔔 Test Notification</button>
+
+    </div>
+
+
+
     <!-- Bottom Section -->
     <div class="mt-auto">
         <button id="toggleThemeBtn" class="btn btn-outline-dark w-100">
@@ -34,3 +52,5 @@ $username = $_SESSION['username'] ?? 'Guest';
         </a>
     </div>
 </div>
+
+

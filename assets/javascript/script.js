@@ -1,6 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
     initThemeToggle();
     initTaskManagement();
+    initCategoryManagement();
     initForms();
     restoreScroll();
 });
@@ -57,6 +58,8 @@ async function handleFormSubmit(event) {
 
     // Get input values
     let taskTitle = form.querySelector('input[name="taskTitle"]')?.value || "";
+    let dueDate = form.querySelector('input[name="dueDate"]')?.value || "";
+    console.log("Due Date before sending:", dueDate); 
     let parentTaskTitle = form.querySelector('input[name="parentTaskTitle"]')?.value || "";
     let subtaskTitle = form.querySelector('input[name="subtaskTitle"]')?.value || "";
     let parentTaskId = form.querySelector('input[name="parentTaskId"]')?.value || "";
@@ -73,40 +76,45 @@ async function handleFormSubmit(event) {
         // **CASE 1: TASK FORM (Creating a Parent Task)**
         if (form.id === "taskForm") {
             formData.append("taskTitle", taskTitle);
-
+        
             console.log("🔹 Data sent to API (Task):", Object.fromEntries(formData));
-
+        
             // Send request to api.php
-            const aiResponse = await fetch("../dashboard/components/api.php", {
+            const aiResponse = await fetch("../taskflow/component functions/api.php", {
                 method: "POST",
                 body: formData
             });
-
+        
             const aiResponseText = await aiResponse.text();
             console.log("Raw AI Response:", aiResponseText);
-
+        
             aiData = JSON.parse(aiResponseText);
             console.log("AI Response for Task:", aiData);
-
+        
             if (!aiData.success) throw new Error(aiData.message || "AI task creation failed.");
-
+        
+            // Append dueDate after receiving AI response
+            let dueDate = form.querySelector('input[name="dueDate"]').value;
+        
             const addData = await addTaskToDatabase(
                 aiData.taskTitle,
                 aiData.difficulty_numeric,
-                Array.isArray(aiData.tags) ? aiData.tags.join(", ") : ""
+                Array.isArray(aiData.tags) ? aiData.tags.join(", ") : "",
+                dueDate
             );
-
+        
             console.log("Task Data:", addData);
-
+        
             if (addData && addData.success) {
                 form.reset();
                 closeModal(form);
-                addTaskToUI(addData.task); // ✅ Works because task exists
+                addTaskToUI(addData.task);
             } else {
                 const errorMessage = addData && addData.message ? addData.message : "Unknown error occurred";
                 throw new Error("Error adding task: " + errorMessage);
             }
         }
+        
 
         // **CASE 2: SUBTASK FORM (AI ON)**
         else if (form.id === "subtaskForm" && aiGenerate) {
@@ -117,7 +125,7 @@ async function handleFormSubmit(event) {
 
             console.log("🔹 Data sent to API (Subtask AI ON):", Object.fromEntries(formData));
 
-            const aiResponse = await fetch("../dashboard/components/api.php", {
+            const aiResponse = await fetch("../taskflow/component functions/api.php", {
                 method: "POST",
                 body: formData
             });
@@ -158,7 +166,7 @@ async function handleFormSubmit(event) {
 
             console.log("🔹 Data sent to API (Subtask AI OFF):", Object.fromEntries(formData));
 
-            const aiResponse = await fetch("../dashboard/components/api.php", {
+            const aiResponse = await fetch("../taskflow/component functions/api.php", {
                 method: "POST",
                 body: formData
             });
@@ -183,7 +191,7 @@ async function handleFormSubmit(event) {
             if (addData && addData.success) {
                 form.reset();
                 closeModal(form);
-                addTaskToUI(addData.subtask); // ✅ Works because task exists
+                addTaskToUI(addData.subtask); 
             } else {
                 const errorMessage = addData && addData.message ? addData.message : "Unknown error occurred";
                 throw new Error("Error adding task: " + errorMessage);
@@ -200,7 +208,7 @@ async function handleFormSubmit(event) {
 
             console.log("🔹 Data sent to API (Category):", Object.fromEntries(formData));
 
-            const categoryResponse = await fetch("../dashboard/components/add.php", {
+            const categoryResponse = await fetch("../taskflow/component functions/add.php", {
                 method: "POST",
                 body: formData
             });
@@ -245,15 +253,27 @@ function closeModal(form) {
 /**
  * Sends a new task to the database.
  */
-async function addTaskToDatabase(title, difficulty, tags) {
+async function addTaskToDatabase(title, difficulty, tags, dueDate) {  
     const formData = new FormData();
     formData.append("taskTitle", title);
     formData.append("difficulty_numeric", difficulty);
-    formData.append("tags", JSON.stringify(tags)); // Send tags as JSON
+    formData.append("tags", JSON.stringify(tags)); 
+
+
+    let formattedDueDate = dueDate.replace('T', ' '); 
+
+  
+    if (formattedDueDate.length === 16) { 
+        formattedDueDate += ":00";
+    }
+
+   
+    formData.append("due_date", formattedDueDate);  
 
     console.log("Tags before sending:", tags); // Debugging line
+    console.log("Due Date before sending:", formattedDueDate); // Debugging line
 
-    const response = await fetch("../dashboard/components/add.php", {
+    const response = await fetch("../taskflow/component functions/add.php", {
         method: "POST",
         body: formData
     });
@@ -270,6 +290,9 @@ async function addTaskToDatabase(title, difficulty, tags) {
 }
 
 
+
+
+
 /**
  * Sends a new subtask to the database.
  */
@@ -278,9 +301,9 @@ async function addSubtaskToDatabase(parentTaskId, title, difficulty, tags) {
     formData.append("parentTaskId", parentTaskId);
     formData.append("subtaskTitle", title);
     formData.append("difficulty_numeric", difficulty);
-    formData.append("tags", JSON.stringify(tags)); // Ensure correct JSON format
+    formData.append("tags", JSON.stringify(tags)); 
 
-    const response = await fetch("../dashboard/components/add.php", {
+    const response = await fetch("../taskflow/component functions/add.php", {
         method: "POST",
         body: formData
     });
@@ -429,7 +452,7 @@ function initTaskManagement() {
 
             subtaskModalElement.addEventListener("shown.bs.modal", function () {
                 console.log("Subtask modal opened. Initializing AI Toggle...");
-                aiGenerateToggle();  // ✅ No need to pass form
+                aiGenerateToggle();  
             }, { once: true });
         }
     });
@@ -437,7 +460,7 @@ function initTaskManagement() {
 
     // ✅ Delete Task/Subtask (Event Delegation)
     taskList.addEventListener("click", event => {
-        const button = event.target.closest("button"); // Ensure we get the button, not the icon
+        const button = event.target.closest("button"); 
         if (!button) return;
 
         if (button.classList.contains("delete-task-btn") || button.classList.contains("delete-subtask-btn")) {
@@ -450,12 +473,12 @@ function initTaskManagement() {
 
                 console.log("Attempting to delete task with ID:", taskId);
 
-                fetch('../dashboard/components/delete_task.php', {
+                fetch('../taskflow/component functions/delete_task.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                     body: `taskId=${taskId}`
                 })
-                .then(response => response.text()) // Change this to .text() first for debugging
+                .then(response => response.text())
                 .then(text => {
                     console.log("Raw response from server:", text);
                     try {
@@ -528,7 +551,7 @@ function getDifficultyColor(difficulty) {
 
     // **Dark Mode Adjustment**: Reduce brightness & add gray
     if (isDarkMode) {
-        red = Math.round(red * 0.8 + 30);   // Reduce intensity, add gray tint
+        red = Math.round(red * 0.8 + 30);   
         green = Math.round(green * 0.8 + 30);
         blue = Math.round(blue * 0.8 + 30);
     }
@@ -546,7 +569,7 @@ function getDifficultyColor(difficulty) {
    ======================== */
 async function updateTaskStatus(taskId, status) {
     try {
-        const response = await fetch("../dashboard/components/update_status.php", {
+        const response = await fetch("../taskflow/component functions/update_status.php", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ task_id: taskId, status })
@@ -576,7 +599,7 @@ function restoreScroll() {
 
     if (taskPane && savedScrollPosition !== null) {
         taskPane.scrollTop = parseInt(savedScrollPosition, 10);
-        sessionStorage.removeItem("scrollPosition"); // Clear it after restoring
+        sessionStorage.removeItem("scrollPosition"); 
     }
 }
 
@@ -592,7 +615,7 @@ async function saveTaskOrder() {
     }));
 
     try {
-        const response = await fetch("../dashboard/components/update-task-order.php", {
+        const response = await fetch("../taskflow/component functions/update-task-order.php", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(tasks)
@@ -617,7 +640,7 @@ function getDragAfterElement(container, y) {
 }
 
 function aiGenerateToggle() {
-    console.log("aiGenerateToggle() function is running!"); // Debugging line
+    console.log("aiGenerateToggle() function is running!");
 
     const aiToggle = document.getElementById("aiToggle");
     const subtaskLabel = document.getElementById("subtaskLabel");
@@ -646,5 +669,95 @@ function aiGenerateToggle() {
             console.log(aiGenerate.value); // Debugging line
             submitButton.textContent = "Add Subtask";
         }
+    });
+}
+
+function initCategoryManagement() {
+    const categoryList = document.getElementById("category-list");
+    if (!categoryList) return;
+
+    categoryList.addEventListener("click", event => {
+        const button = event.target.closest("button");
+        if (!button) return;
+
+        if (button.classList.contains("delete-category-btn")) {
+            const categoryId = button.dataset.categoryId;
+            if (!categoryId) {
+                alert("Error: Category ID is missing!");
+                return;
+            }
+
+            if (confirm("Are you sure you want to delete this category?")) {
+                console.log("Attempting to delete category with ID:", categoryId);
+
+                fetch('../taskflow/component functions/delete_Category.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `categoryId=${categoryId}`
+                })
+                .then(response => response.text())
+                .then(text => {
+                    console.log("Raw response from server:", text);
+                    try {
+                        const data = JSON.parse(text);
+                        if (data.success) {
+                            
+                            button.closest("li").remove();
+                        } else {
+                            alert("Error deleting category: " + (data.message || "Unknown error"));
+                        }
+                    } catch (error) {
+                        console.error("Error parsing JSON:", error);
+                        alert("Server response is not valid JSON. Check console.");
+                    }
+                })
+                .catch(error => {
+                    console.error("Fetch error:", error);
+                    alert("Fetch request failed. Check console.");
+                });
+            }
+        }
+    });
+}
+
+// Function to update session counts
+function updateSessionCount(type) {
+    fetch('dashboard.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+            session_type: type
+        })
+    })
+    .then(response => response.text())
+    .then(data => {
+        console.log(data);
+        location.reload(); 
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
+
+// Function to reset all session counts
+function resetSessionCounts() {
+    fetch('dashboard.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+            reset: true
+        })
+    })
+    .then(response => response.text())
+    .then(data => {
+        console.log(data);
+        location.reload(); 
+    })
+    .catch(error => {
+        console.error('Error:', error);
     });
 }

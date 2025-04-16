@@ -1,4 +1,4 @@
-<div class="modal fade" id="addTaskModal" data-bs-backdrop="static" tabindex="-1" >
+<div class="modal fade" id="addTaskModal" data-bs-backdrop="static" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
@@ -11,18 +11,25 @@
                         <label for="taskTitle" class="form-label">Task Title</label>
                         <input type="text" id="taskTitle" name="taskTitle" class="form-control" required>
                     </div>
+
+                    <!-- 👇 DUE DATE FIELD -->
+                    <div class="mb-3">
+                        <label for="dueDate" class="form-label">Due Date</label>
+                        <input type="datetime-local" id="dueDate" name="dueDate" class="form-control" required>
+                    </div>
+
                     <div class="d-flex justify-content-center">
                         <button type="submit" class="btn btn-success">
                             Add Task
                             <span class="spinner-border spinner-border-sm ms-2 d-none" role="status"></span>
                         </button>
                     </div>
-
                 </form>
             </div>
         </div>
     </div>
 </div>
+
 
 <div class="modal fade" id="addCategoryModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">

@@ -1,15 +1,31 @@
 version 0.2
-1) Login Signup design. 
+1) Login Signup design. (DONE)
 2) side bar for all pages in Task Flow (DONE)
 3) Placeholder for view on each pages (DONE)
 4) View Panes for pages and design for each page. (DONE)
 
 version 0.3
 1) Home and About page.
-2) create and delete tasks
-3) create subtasks
-
+2) create and delete tasks (DONE)
+3) create subtasks (DONE)
+4) create categories (DONE)
+5) add delete button on categories (DONE)
+6) add difficulty marker on subtasks as well (DONE)
+7) add due date
 
 
 version 0.4
-1) delete subtasks
+1) pomodoro timer (DONE)
+2) AI generation (DONE)
+4) add dashboard design and display (DONE)
+5) make settings work 
+6) edit tasks manually, and add tasks manually
+
+
+LAST:
+1) Home and About page.
+5) make settings work 
+6) edit tasks manually, and add tasks manually
+7) add due date
+    add due date in to-do list page.
+    add due date in 
