@@ -31,7 +31,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $aiPrompt = "Analyze the task: \"$taskTitle\". Follow these steps:
         - Assign a difficulty numeric value (0.1 - 10.0), with easy (0.0-4.0), medium (4.1-7.5), and hard (7.6-10.0).
         - Use only the user's provided categories: [$categoriesList].
-        - Return JSON in this format:
+        - Return JSON only, exactly in this format (no extra quotes or escape characters):
         {
             \"taskTitle\": \"$taskTitle\",
             \"difficulty_numeric\": X.X,
@@ -59,13 +59,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         - A clear and actionable title.
         - Difficulty numeric value (0.1 - 10.0).
         - Tags selected only from: [$categoriesList].
-        - Return JSON in this format:
+        - Return JSON only, exactly in this format (no extra quotes or escape characters):
         {
             \"subtasks\": [
                 {
                     \"title\": \"Subtask 1 title\",
                     \"difficulty_numeric\": X.X,
-                    \"tags\": [\"tag1\", \"tag2\"]
+                    \"tags\": [\"tag1\", \"tag2\", \"...\"] 
                 }
             ]
         }";

@@ -38,13 +38,17 @@ function handleTaskAddition($conn, $userId) {
     $difficultyNumeric = floatval($_POST['difficulty_numeric']);
     
     $rawTags = $_POST['tags'];
+
+    // Try to decode as JSON if the input is a valid JSON string
     $tags = json_decode($rawTags, true);
-    
+
+    // If json_decode fails (tags were not in valid JSON format), treat it as a comma-separated string
     if (!is_array($tags)) {
         $tags = explode(',', $rawTags);
-        $tags = array_map('trim', $tags);
+        $tags = array_map('trim', $tags); // Remove any leading/trailing spaces
     }
-    
+
+    // Filter out empty tags
     $tags = array_filter($tags, fn($tag) => $tag !== "");
 
     $description = isset($_POST['description']) ? trim($_POST['description']) : "";  
