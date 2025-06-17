@@ -2,6 +2,7 @@
 include '../config db.php';
 include '../taskflow/component functions/dashboard_display.php';
 include '../authentication/session.php';
+
 ?>
 
 <!DOCTYPE html>
@@ -24,7 +25,8 @@ include '../authentication/session.php';
             <h2>Dashboard</h2>
             
         </div>
-        <div class="task-view-pane mx-auto mt-4 p-3 rounded" style="height: 100vh;">
+        <div class="task-view-pane mx-auto mt-4 p-3 rounded" style="height: calc(100vh - 2rem); overflow: hidden;">
+
             <div class="d-flex flex-wrap gap-3 h-100">
                 <!-- Upper Left: Task Overview -->
                 <div class="card" style="flex: 1 1 calc(50% - 0.75rem); height: 48%;">
@@ -111,48 +113,50 @@ include '../authentication/session.php';
                                 <li class="list-group-item text-muted">No upcoming deadlines.</li>
                             <?php else: ?>
                                 <?php foreach ($upcomingTasks as $task): 
-                                    $dueDate = new DateTime($task['due_date']);
-                                    $now = new DateTime();
-                                    $diff = $now->diff($dueDate)->days;
+                                    $dueDate = new DateTime($task['due_date'], new DateTimeZone('Asia/Manila'));
+                                    $now = new DateTime('now', new DateTimeZone('Asia/Manila'));
 
-                                    // Determine time-based badge
-                                    $label = '';
-                                    $badgeClass = 'bg-secondary';
+                                    $diffSeconds = $dueDate->getTimestamp() - $now->getTimestamp();
 
                                     if ($dueDate < $now) {
                                         $label = 'Overdue';
                                         $badgeClass = 'bg-danger';
-                                    } elseif ($dueDate->format('Y-m-d') === $now->format('Y-m-d')) {
-                                        $label = 'Today';
-                                        $badgeClass = 'bg-warning text-dark';
-                                    } elseif ($diff === 1) {
-                                        $label = 'Tomorrow';
-                                        $badgeClass = 'bg-info text-dark';
                                     } else {
-                                        $label = "In $diff Days";
-                                        $badgeClass = 'bg-secondary';
+                                        $interval = $now->diff($dueDate);
+                                        $diffDays = $interval->d;
+                                        $diffHours = $interval->h;
+                                        $diffMinutes = $interval->i;
+
+                                        if ($diffDays === 0) {
+                                            $label = "Today ({$diffHours}h {$diffMinutes}m left)";
+                                            $badgeClass = 'bg-warning text-dark';
+                                        } elseif ($diffDays === 1) {
+                                            $label = 'Tomorrow';
+                                            $badgeClass = 'bg-info text-dark';
+                                        } else {
+                                            $label = "In $diffDays days";
+                                            $badgeClass = 'bg-secondary';
+                                        }
                                     }
 
-                                    $timeFormatted = $dueDate->format('g:i A');
+                                    // Change this to include both date and time
+                                    $timeFormatted = $dueDate->format('M j, Y g:i A'); 
+
                                 ?>
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    <?= htmlspecialchars($task['title']) ?>
-                                    <div class="d-flex align-items-center gap-2">
-                                        <small class="text-muted"><?= $timeFormatted ?></small>
-                                        <span class="badge <?= $badgeClass ?>"><?= $label ?></span>
-                                    </div>
-                                </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <?= htmlspecialchars($task['title']) ?>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <small class="text-muted"><?= $timeFormatted ?></small>
+                                            <span class="badge <?= $badgeClass ?>"><?= $label ?></span>
+                                        </div>
+                                    </li>
                                 <?php endforeach; ?>
                             <?php endif; ?>
                         </ul>
                     </div>
                 </div>
-
             </div>
         </div>
-
-
-
     </div>
 </div>
 

@@ -1,4 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
+    editFormSave();
+    slider();
     initThemeToggle();
     initTaskManagement();
     initCategoryManagement();
@@ -6,7 +8,38 @@ document.addEventListener("DOMContentLoaded", () => {
     restoreScroll();
 });
 
+async function editFormSave(){
+    const editForm = document.getElementById("editForm");
+    const editSubmitBtn = document.getElementById("editFormSubmitBtn");
 
+    if (editForm && editSubmitBtn) {
+        editSubmitBtn.addEventListener("click", async (event) => {
+            event.preventDefault(); // prevent default button behavior
+            console.log("🚀 Edit form submit button clicked directly...");
+            await saveEditTask(editForm);
+        });
+        console.log("✅ Direct saveEditTask attached to editFormSubmitBtn");
+    } else {
+        console.error("❌ Missing editForm or editFormSubmitBtn!");
+    }
+}
+
+function slider(){
+    const slider = document.getElementById('edit-difficulty');
+    const valueDisplay = document.getElementById('edit-difficulty-value');
+
+    if (slider && valueDisplay) {
+        // Initial display value
+        valueDisplay.textContent = `Difficulty: ${parseFloat(slider.value).toFixed(1)}`;
+
+        // Update when user slides
+        slider.addEventListener('input', () => {
+            const value = parseFloat(slider.value).toFixed(1);
+            valueDisplay.textContent = `Difficulty: ${value}`;
+        });
+    }
+
+}
 
 const savedTheme = localStorage.getItem("theme") || "light";
 
@@ -45,25 +78,67 @@ function initThemeToggle() {
 }
 
 async function handleFormSubmit(event) {
+    console.log("🚀 Submit button clicked!");
     event.preventDefault();
+    console.log("Form submission started...");
     const form = event.target;
     const submitButton = form.querySelector("button[type='submit']");
     const spinner = submitButton.querySelector(".spinner-border");
+    const hasSpinner = !!spinner;
 
-    // Store original button text
     const originalText = submitButton.innerHTML;
-    submitButton.style.width = submitButton.offsetWidth + "px"; // Prevent shrinking
-    submitButton.innerHTML = `<span class="spinner-border spinner-border-sm"></span>`;
-    submitButton.disabled = true;
+
+    // Clear any existing error message
+    const modal = form.closest(".modal");
+    const modalBody = modal?.querySelector(".modal-body");
+    const existingError = modalBody?.querySelector("#error-message");
+    if (existingError) existingError.remove();
 
     // Get input values
     let taskTitle = form.querySelector('input[name="taskTitle"]')?.value || "";
-    let dueDate = form.querySelector('input[name="dueDate"]')?.value || "";
-    console.log("Due Date before sending:", dueDate); 
+    let dueDateInput = form.querySelector('input[name="dueDate"]')?.value || "";
+    let dueDate = new Date(dueDateInput);
+    let now = new Date();
     let parentTaskTitle = form.querySelector('input[name="parentTaskTitle"]')?.value || "";
     let subtaskTitle = form.querySelector('input[name="subtaskTitle"]')?.value || "";
     let parentTaskId = form.querySelector('input[name="parentTaskId"]')?.value || "";
     let aiGenerate = form.querySelector('input[name="ai_generate"]')?.value === "1";
+    
+    if (form.id === "taskForm" && dueDate < now) {
+        console.log("Due date is in the past!");
+        
+        const modal = form.closest(".modal");
+        const modalBody = modal?.querySelector(".modal-body");
+
+        if (modalBody) {
+            // Remove existing error if any
+            const existingError = modalBody.querySelector("#error-message");
+            if (existingError) existingError.remove();
+
+            // Create and insert error message
+            const errorElement = document.createElement("p");
+            errorElement.id = "error-message";
+            errorElement.className = "text-warning text-center";
+            errorElement.textContent = "Due date must be in the future.";
+            modalBody.appendChild(errorElement);
+        } else {
+            console.warn("⚠️ Could not find .modal-body to display error.");
+        }
+
+        // Restore submit button UI
+        submitButton.innerHTML = originalText;
+        spinner.classList.add("d-none");
+        submitButton.disabled = false;
+
+        return; // Cancel the rest of the submission
+    }
+
+
+    if (hasSpinner) {
+        submitButton.style.width = submitButton.offsetWidth + "px";
+        submitButton.innerHTML = `<span class="spinner-border spinner-border-sm"></span>`;
+    }
+    submitButton.disabled = true;
 
 
     console.log("Local AI Generate:", aiGenerate);
@@ -76,14 +151,14 @@ async function handleFormSubmit(event) {
         // **CASE 1: TASK FORM (Creating a Parent Task)**
         if (form.id === "taskForm") {
             formData.append("taskTitle", taskTitle);
-        
+            
             console.log("🔹 Data sent to API (Task):", Object.fromEntries(formData));
-        
+            
             // Send request to api.php
             const aiResponse = await fetch("../taskflow/component functions/api.php", {
                 method: "POST",
                 body: formData
-            });
+            }); 
         
             const aiResponseText = await aiResponse.text();
             console.log("Raw AI Response:", aiResponseText);
@@ -231,13 +306,75 @@ async function handleFormSubmit(event) {
             }
         }
 
+
     } catch (error) {
         console.error("Form submission error:", error);
         alert(error.message);
     } finally {
         submitButton.innerHTML = originalText;
-        spinner.classList.add("d-none");
+        if (hasSpinner) spinner.classList.add("d-none");
         submitButton.disabled = false;
+    }
+}
+
+async function saveEditTask(form) {
+    console.log("🚀 Saving edited task...");
+
+    const idInput = form.querySelector('input[name="id"]');
+    const typeInput = form.querySelector('input[name="type"]');
+    const titleInput = form.querySelector('input[name="title"]');
+    const difficultyInput = form.querySelector('input[name="difficulty"]');
+    console.log("🔍 id:", idInput);
+    console.log("🔍 type:", typeInput);
+    console.log("🔍 title:", titleInput);
+    console.log("🔍 difficulty:", difficultyInput);
+
+
+    if (!idInput || !typeInput || !titleInput || !difficultyInput) {
+        console.error("❌ One or more input fields are missing in the edit form.");
+        return;
+    }
+
+    const id = idInput.value;
+    const type = typeInput.value;
+    const title = titleInput.value.trim();
+    const difficulty = parseFloat(difficultyInput.value) || 0;
+    const tags = getCurrentTags(); // Make sure this exists and returns array or string
+    console.log("🔍 id:", id);
+    console.log("🔍 type:", type);
+    console.log("🔍 title:", title);
+    console.log("🔍 difficulty:", difficulty);
+    console.log("🔍 tags:", tags);
+
+
+    if (!title) {
+        console.error("⚠️ Task title is required.");
+        return;
+    }
+
+    try {
+        const response = await fetch("../taskflow/component functions/edit_task.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id, type, title, difficulty, tags })
+        });
+
+        const rawText = await response.text();
+        console.log("🔹 Raw Edit Task Response:", rawText);
+        
+        const data = JSON.parse(rawText);
+
+        if (data.success) {
+            console.log("✅ Task updated successfully:", data.task);
+            // Handle success: reset form, close modal, refresh list
+            form.reset();
+            closeModal(form);
+            refreshTaskList();
+        } else {
+            throw new Error(data.message || "Failed to save task changes.");
+        }
+    } catch (error) {
+        console.error("❌ Error saving task:", error.message);
     }
 }
 
@@ -503,8 +640,111 @@ function initTaskManagement() {
         }
     });
 
+    // ✅ Edit Task/Subtask Button Handling (Event Delegation)
+    taskList.addEventListener("click", event => {
+        const editBtn = event.target.closest(".edit-task-btn") || event.target.closest(".edit-subtask-btn");
+        if (!editBtn) return;
+
+        const isTask = editBtn.classList.contains("edit-task-btn");
+        const id = isTask ? editBtn.dataset.taskId : editBtn.dataset.subtaskId;
+        const type = isTask ? "task" : "subtask";
+
+        let item;
+        if (isTask) {
+            item = document.querySelector(`[data-task-id="${id}"]`);
+        } else {
+            // For subtask, find the checkbox first and get closest .subtask element
+            const checkbox = document.querySelector(`.subtask-checkbox[data-subtask-id="${id}"]`);
+            if (!checkbox) return;
+            item = checkbox.closest(".subtask");
+        }
+        if (!item) return;
+
+        const title = isTask 
+            ? item.querySelector("strong")?.innerText.trim() || ""
+            : item.querySelector(".subtask-name")?.innerText.trim() || "";
+
+        const difficulty = item.querySelector(".difficulty-label")?.dataset.difficulty || 5;
+
+        const tags = Array.from(item.querySelectorAll(".badge")).map(b => b.innerText.trim());
+
+        document.getElementById("editTaskid").value = id;
+        document.getElementById("edit-type").value = type;
+        document.getElementById("edit-title").value = title;
+        document.getElementById("edit-difficulty").value = difficulty;
+        document.getElementById("edit-difficulty-value").innerText = difficulty;
+
+        renderCurrentTags(tags);
+        populateTagDropdown(tags);
+
+        const modal = new bootstrap.Modal(document.getElementById("editModal"));
+        modal.show();
+    });
+
+
+
+
     applyDifficultyColors();
 }
+
+
+
+function renderCurrentTags(tags) {
+    const tagContainer = document.getElementById("current-tags");
+    tagContainer.innerHTML = "";
+
+    tags.forEach(tag => {
+        const badge = document.createElement("span");
+        badge.className = "badge bg-success text-light me-1";
+        badge.textContent = tag;
+        badge.style.cursor = "pointer";
+
+        badge.addEventListener("click", () => {
+            badge.remove();
+            populateTagDropdown(getCurrentTags()); // refresh dropdown
+        });
+
+        tagContainer.appendChild(badge);
+    });
+}
+
+function getCurrentTags() {
+    return Array.from(document.querySelectorAll("#current-tags .badge")).map(b => b.innerText.trim());
+}
+
+function populateTagDropdown(currentTags = []) {
+    const dropdown = document.getElementById("tag-dropdown");
+    dropdown.innerHTML = '<option value="">-- Select Tag --</option>';
+
+    (window.availableCategories || []).forEach(cat => {
+        if (!currentTags.includes(cat.name)) {
+            const option = document.createElement("option");
+            option.value = cat.name;
+            option.textContent = cat.name;
+            dropdown.appendChild(option);
+        }
+    });
+
+    dropdown.onchange = function () {
+        const selected = this.value;
+        if (selected) {
+            const newTag = document.createElement("span");
+            newTag.className = "badge bg-success text-light me-1";
+            newTag.textContent = selected;
+            newTag.style.cursor = "pointer";
+
+            newTag.addEventListener("click", () => {
+                newTag.remove();
+                populateTagDropdown(getCurrentTags());
+            });
+
+            document.getElementById("current-tags").appendChild(newTag);
+            this.value = "";
+            populateTagDropdown(getCurrentTags()); // Refresh to exclude just-added
+        }
+    };
+}
+
 
 // Function to Assign Dynamic Colors to Difficulty Labels
 function applyDifficultyColors() {
@@ -592,6 +832,7 @@ function refreshTaskList() {
 
     location.reload();
 }
+
 
 function restoreScroll() {
     const taskPane = document.querySelector(".task-view-pane");

@@ -82,4 +82,16 @@ $completedTasks = organizeTasks($completedTasks);
  * Fetch categories (tags).
  */
 $categories = fetchResults($conn, "SELECT * FROM tags ORDER BY name ASC");
+
+
+$taskId = $taskId ?? 0;
+
+$userTagsForEdit = fetchResults($conn, "
+    SELECT * FROM tags 
+    WHERE user_id = ? 
+    AND id NOT IN (
+        SELECT tag_id FROM task_tags WHERE task_id = ?
+    )
+    ORDER BY name ASC
+", [$userId, $taskId]);
 ?>

@@ -1,6 +1,7 @@
 /* VERSION 0.1 */
 html, body {
-    height: 100%;
+    overflow: hidden;      /* Prevent page scroll */
+    height: 100vh; 
     margin: 0;
 }
 /* VERSION 0.1 */
@@ -397,9 +398,47 @@ body.auth-page {
     padding-left: 1px !important; /* Fine-tunes spacing from checkbox */
 }
 
-/* Show delete button on hover */
+/* Hide by default */
+.edit-subtask-btn,
+.delete-subtask-btn,
+.edit-task-btn,
+.delete-task-btn {
+    visibility: hidden;
+}
+
+/* Show buttons when hovering over a subtask */
+.subtask:hover .edit-subtask-btn,
 .subtask:hover .delete-subtask-btn {
     visibility: visible;
+}
+
+/* Show buttons when hovering over a task */
+.task:hover .edit-task-btn,
+.task:hover .delete-task-btn {
+    visibility: visible;
+}
+
+
+.edit-subtask-btn {
+    visibility: hidden;
+    background: none;
+    border: none;
+    color: #0d6efd;
+    cursor: pointer;
+    font-size: 1.2rem;
+    position: absolute;
+    right: 15px;
+}
+
+.edit-task-btn {
+    visibility: hidden;
+    background: none;
+    border: none;
+    color: #0d6efd;
+    cursor: pointer;
+    font-size: 1.2rem;
+    position: absolute;
+    right: 25px;
 }
 
 /* Task Delete Button */
@@ -421,24 +460,20 @@ body.auth-page {
     align-items: center;
 }
 
-.task:hover .delete-task-btn {
-    visibility: visible;
-}
-
 /* Ensure Task Header Has Positioning for Absolute Delete Button */
 .task {
     position: relative;
 }
 
 .taggys {
-    margin-right: 35px;
+    margin-right: 55px;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
 }
 
 .subtaggys {
-    margin-right: 35px !important;
+    margin-right: 55px !important;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;

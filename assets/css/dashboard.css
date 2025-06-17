@@ -1,0 +1,4 @@
+body {
+    overflow: hidden;      /* Prevent page scroll */
+    height: 100vh;         /* Lock height to the viewport */
+}

@@ -11,7 +11,7 @@
     </style>
 </head>
 <body class="auth-page">
-    <?php include '../taskflow/component functions/navbar.php'; ?>
+    <?php include '../taskflow/component functions/navbar_about.php'; ?>
 
     <div class="container-sm mt-3">
         <img src="../assets/images/devTeam.jpg" class="rounded mx-auto d-block img-fluid" alt="Development Team">

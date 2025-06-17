@@ -97,7 +97,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     Don't have an account? <a href="#" onclick="toggleForm('signup')" class='white-text'>Sign up</a>
                 </p>
 
-                <?php if (!empty($error)) echo "<p class='text-warning text-center'>$error</p>"; ?>
+                <?php if (!empty($error)) echo "<p id='error-message' class='text-warning text-center'>$error</p>"; ?>
+
             </form>
         </div>
 
@@ -129,6 +130,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 "Don't have an account? <a href='#' onclick='toggleForm(\"signup\")' class='white-text'>Sign up</a>" : 
                 "Already have an account? <a href='#' onclick='toggleForm(\"login\")' class='white-text'>Login</a>";
 
+            // Clear error message
+            const errorEl = document.getElementById('error-message');
+            if (errorEl) {
+                errorEl.innerText = '';
+            }
+
             // Set active class on the correct button
             const loginButton = document.getElementById('login-btn');
             const signupButton = document.getElementById('signup-btn');
@@ -145,9 +152,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
         // Initially set active class based on default state (login)
-        window.onload = function() {
-            toggleForm('login');
+        window.onload = function () {
+            const params = new URLSearchParams(window.location.search);
+            const formType = params.get('form'); // Will be 'signup' or 'login'
+
+            if (formType === 'signup' || formType === 'login') {
+                toggleForm(formType);
+            } else {
+                toggleForm('login'); // default fallback
+            }
         };
+
     </script>
 </body>
 </html>

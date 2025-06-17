@@ -81,13 +81,15 @@ if ($pendingResult) {
 // Fetch upcoming tasks
 $now = date('Y-m-d H:i:s');
 $upcomingQuery = $conn->prepare("
-    SELECT id, title, due_date 
-    FROM tasks 
-    WHERE user_id = ? AND due_date IS NOT NULL AND due_date >= ? 
-    ORDER BY due_date ASC 
-    LIMIT 5
+    SELECT id, title, due_date, completed_at
+    FROM tasks
+    WHERE user_id = ?
+    AND due_date IS NOT NULL 
+    AND completed_at IS NULL
+    ORDER BY due_date DESC
 ");
-$upcomingQuery->bind_param("is", $userId, $now);
+
+$upcomingQuery->bind_param("i", $userId);
 $upcomingQuery->execute();
 $upcomingResult = $upcomingQuery->get_result();
 $upcomingTasks = [];

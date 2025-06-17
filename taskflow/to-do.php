@@ -55,6 +55,8 @@ include '../taskflow/component functions/query.php';
                                     </div>
                                 <?php endif; ?>
 
+                                <!-- Edit Button -->
+                                <button class="edit-task-btn btn btn-sm me-2" data-task-id="<?= $task['id'] ?>"><i class="bi bi-gear"></i></button>
                                 <button class="delete-task-btn" data-task-id="<?= $task['id'] ?>"><i class="bi bi-trash"></i></button>
                             </div>
 
@@ -77,7 +79,7 @@ include '../taskflow/component functions/query.php';
                                                 <div class="d-flex align-items-center left-pad">
                                                     <input type="checkbox" class="subtask-checkbox me-2" data-subtask-id="<?= $subtask['id'] ?>"
                                                         <?= ($subtask['status'] === 'completed') ? 'checked' : '' ?>>
-                                                    <span class="subtask-name"><?= htmlspecialchars($subtask['title']) ?></span>
+                                                    <span class="subtask-name" ><?= htmlspecialchars($subtask['title'])?> </span>
                                                 </div>
 
                                                 <!-- Right: tags + delete -->
@@ -89,6 +91,9 @@ include '../taskflow/component functions/query.php';
                                                             <?php endforeach; ?>
                                                         </div>
                                                     <?php endif; ?>
+
+                                                    <!-- Edit Button -->
+                                                    <button class="edit-subtask-btn btn btn-sm me-2" data-subtask-id="<?= $subtask['id'] ?>"><i class="bi bi-gear"></i></button>
                                                     <button class="delete-subtask-btn" data-subtask-id="<?= $subtask['id'] ?>">
                                                         <i class="bi bi-trash"></i>
                                                     </button>
@@ -112,6 +117,8 @@ include '../taskflow/component functions/query.php';
 <!-- Add Task Modal -->
 <?php include '../taskflow/component functions/modals.php'; ?>
 <script>
+    window.availableCategories = <?= json_encode($userTagsForEdit); ?>;
+
     var userPomodoroSettings = {
         pomodoro: <?php echo json_encode($user['pomodoro_time']); ?>,
         shortBreak: <?php echo json_encode($user['shortbreak_time']); ?>,
