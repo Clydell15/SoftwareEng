@@ -85,7 +85,7 @@ include '../taskflow/component functions/query.php';
                                                 <!-- Right: tags + delete -->
                                                 <div class="d-flex align-items-center">
                                                     <?php if (!empty($subtask['tags'])): ?>
-                                                        <div class="d-flex flex-wrap justify-content-end taggys me-2">
+                                                        <div class="d-flex flex-wrap justify-content-end subtaggys me-2">
                                                             <?php foreach ($subtask['tags'] as $tag): ?>
                                                                 <span class="badge bg-success text-light me-1"><?= htmlspecialchars($tag) ?></span>
                                                             <?php endforeach; ?>

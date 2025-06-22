@@ -24,8 +24,8 @@ $current_page = basename($_SERVER['PHP_SELF']);
         </div>
 
         <div class="d-flex gap-2">
-            <button class="btn btn-outline-secondary" onclick="toggleForm('login')" id="login-btn">Login</button>
-            <button class="btn btn-outline-secondary" onclick="toggleForm('signup')" id="signup-btn">Signup</button>
+            <button type="button" class="btn btn-outline-secondary" data-toggle-form="login" id="login-btn">Login</button>
+            <button type="button" class="btn btn-outline-secondary" data-toggle-form="signup" id="signup-btn">Signup</button>
         </div>
     </div>
 </nav>

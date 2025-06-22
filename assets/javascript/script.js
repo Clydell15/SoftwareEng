@@ -6,7 +6,17 @@ document.addEventListener("DOMContentLoaded", () => {
     initCategoryManagement();
     initForms();
     restoreScroll();
+    manualAddTask();
 });
+
+window.addEventListener("load", () => setTimeout(restoreScroll, 50));
+window.addEventListener("beforeunload", function () {
+    const taskPane = document.querySelector(".task-view-pane");
+    if (taskPane) {
+        sessionStorage.setItem("scrollPosition", taskPane.scrollTop);
+    }
+});
+
 
 async function editFormSave(){
     const editForm = document.getElementById("editForm");
@@ -14,13 +24,38 @@ async function editFormSave(){
 
     if (editForm && editSubmitBtn) {
         editSubmitBtn.addEventListener("click", async (event) => {
-            event.preventDefault(); // prevent default button behavior
             console.log("🚀 Edit form submit button clicked directly...");
             await saveEditTask(editForm);
         });
         console.log("✅ Direct saveEditTask attached to editFormSubmitBtn");
     } else {
         console.error("❌ Missing editForm or editFormSubmitBtn!");
+    }
+}
+
+function manualAddTask(){
+    const manualToggle = document.getElementById("manualTaskToggle");
+    const manualFields = document.getElementById("manualTaskFields");
+    const manualDifficulty = document.getElementById("manual-difficulty");
+    const manualDifficultyValue = document.getElementById("manual-difficulty-value");
+
+    if (manualToggle && manualFields) {
+        manualToggle.addEventListener("change", function () {
+            if (this.checked) {
+                manualFields.style.display = "";
+                // Set default value for slider
+                if (manualDifficulty && manualDifficultyValue) {
+                    manualDifficultyValue.textContent = `Difficulty: ${parseFloat(manualDifficulty.value).toFixed(1)}`;
+                    manualDifficulty.addEventListener("input", () => {
+                        manualDifficultyValue.textContent = `Difficulty: ${parseFloat(manualDifficulty.value).toFixed(1)}`;
+                    });
+                }
+                renderCurrentTags([], "manual-current-tags");
+                populateTagDropdown([], "manual-tag-dropdown", "manual-current-tags");
+            } else {
+                manualFields.style.display = "none";
+            }
+        });
     }
 }
 
@@ -134,6 +169,8 @@ async function handleFormSubmit(event) {
     }
 
 
+
+
     if (hasSpinner) {
         submitButton.style.width = submitButton.offsetWidth + "px";
         submitButton.innerHTML = `<span class="spinner-border spinner-border-sm"></span>`;
@@ -150,43 +187,71 @@ async function handleFormSubmit(event) {
 
         // **CASE 1: TASK FORM (Creating a Parent Task)**
         if (form.id === "taskForm") {
-            formData.append("taskTitle", taskTitle);
-            
-            console.log("🔹 Data sent to API (Task):", Object.fromEntries(formData));
-            
-            // Send request to api.php
-            const aiResponse = await fetch("../taskflow/component functions/api.php", {
-                method: "POST",
-                body: formData
-            }); 
-        
-            const aiResponseText = await aiResponse.text();
-            console.log("Raw AI Response:", aiResponseText);
-        
-            aiData = JSON.parse(aiResponseText);
-            console.log("AI Response for Task:", aiData);
-        
-            if (!aiData.success) throw new Error(aiData.message || "AI task creation failed.");
-        
-            // Append dueDate after receiving AI response
-            let dueDate = form.querySelector('input[name="dueDate"]').value;
-        
-            const addData = await addTaskToDatabase(
-                aiData.taskTitle,
-                aiData.difficulty_numeric,
-                Array.isArray(aiData.tags) ? aiData.tags.join(", ") : "",
-                dueDate
-            );
-        
-            console.log("Task Data:", addData);
-        
-            if (addData && addData.success) {
-                form.reset();
-                closeModal(form);
-                addTaskToUI(addData.task);
+            const manualToggle = document.getElementById("manualTaskToggle");
+            const isManual = manualToggle && manualToggle.checked;
+
+            if (isManual) {
+                // Manual Add: Gather manual fields
+                const difficulty = form.querySelector('input[name="difficulty_numeric"]')?.value || 5;
+                const tags = getCurrentTags("manual-current-tags");
+                const dueDate = form.querySelector('input[name="dueDate"]').value;
+
+                // Send directly to add.php
+                const addData = await addTaskToDatabase(
+                    taskTitle,
+                    difficulty,
+                    tags,
+                    dueDate
+                );
+
+                if (addData && addData.success) {
+                    form.reset();
+                    closeModal(form);
+                    addTaskToUI(addData.task);
+                } else {
+                    const errorMessage = addData && addData.message ? addData.message : "Unknown error occurred";
+                    throw new Error("Error adding task: " + errorMessage);
+                }
             } else {
-                const errorMessage = addData && addData.message ? addData.message : "Unknown error occurred";
-                throw new Error("Error adding task: " + errorMessage);
+                // AI Add: Use your existing AI logic
+                formData.append("taskTitle", taskTitle);
+
+                console.log("🔹 Data sent to API (Task):", Object.fromEntries(formData));
+
+                // Send request to api.php
+                const aiResponse = await fetch("../taskflow/component functions/api.php", {
+                    method: "POST",
+                    body: formData
+                }); 
+
+                const aiResponseText = await aiResponse.text();
+                console.log("Raw AI Response:", aiResponseText);
+
+                aiData = JSON.parse(aiResponseText);
+                console.log("AI Response for Task:", aiData);
+
+                if (!aiData.success) throw new Error(aiData.message || "AI task creation failed.");
+
+                // Append dueDate after receiving AI response
+                let dueDate = form.querySelector('input[name="dueDate"]').value;
+
+                const addData = await addTaskToDatabase(
+                    aiData.taskTitle,
+                    aiData.difficulty_numeric,
+                    Array.isArray(aiData.tags) ? aiData.tags.join(", ") : "",
+                    dueDate
+                );
+
+                console.log("Task Data:", addData);
+
+                if (addData && addData.success) {
+                    form.reset();
+                    closeModal(form);
+                    addTaskToUI(addData.task);
+                } else {
+                    const errorMessage = addData && addData.message ? addData.message : "Unknown error occurred";
+                    throw new Error("Error adding task: " + errorMessage);
+                }
             }
         }
         
@@ -666,6 +731,24 @@ function initTaskManagement() {
 
         const difficulty = item.querySelector(".difficulty-label")?.dataset.difficulty || 5;
 
+        // Fetch due date (assumes you render it in a span or data attribute)
+        let dueDate = "";
+        const dueDateSpan = item.querySelector(".difficulty-label");
+        if (dueDateSpan && dueDateSpan.textContent.includes("Due:")) {
+            // Example: "... | Due: Jun 22, 2025 5:00 PM"
+            const match = dueDateSpan.textContent.match(/Due:\s*([A-Za-z0-9, :AMP]+)/);
+            if (match && match[1]) {
+                // Parse to Date object
+                const parsed = new Date(match[1]);
+                if (!isNaN(parsed)) {
+                    // Format to YYYY-MM-DDTHH:MM for datetime-local
+                    const pad = n => n.toString().padStart(2, "0");
+                    dueDate = `${parsed.getFullYear()}-${pad(parsed.getMonth() + 1)}-${pad(parsed.getDate())}T${pad(parsed.getHours())}:${pad(parsed.getMinutes())}`;
+                }
+            }
+        }
+
+
         const tags = Array.from(item.querySelectorAll(".badge")).map(b => b.innerText.trim());
 
         document.getElementById("editTaskid").value = id;
@@ -673,7 +756,10 @@ function initTaskManagement() {
         document.getElementById("edit-title").value = title;
         document.getElementById("edit-difficulty").value = difficulty;
         document.getElementById("edit-difficulty-value").innerText = difficulty;
-
+        const dueDateInput = document.getElementById("edit-dueDate");
+        if (dueDateInput && dueDate) {
+            dueDateInput.value = dueDate;
+        }
         renderCurrentTags(tags);
         populateTagDropdown(tags);
 
@@ -689,8 +775,9 @@ function initTaskManagement() {
 
 
 
-function renderCurrentTags(tags) {
-    const tagContainer = document.getElementById("current-tags");
+function renderCurrentTags(tags = [], containerId = "current-tags") {
+    const tagContainer = document.getElementById(containerId);
+    if (!tagContainer) return;
     tagContainer.innerHTML = "";
 
     tags.forEach(tag => {
@@ -698,22 +785,21 @@ function renderCurrentTags(tags) {
         badge.className = "badge bg-success text-light me-1";
         badge.textContent = tag;
         badge.style.cursor = "pointer";
-
         badge.addEventListener("click", () => {
             badge.remove();
-            populateTagDropdown(getCurrentTags()); // refresh dropdown
+            populateTagDropdown(getCurrentTags(containerId), containerId.replace("current-tags", "tag-dropdown"), containerId);
         });
-
         tagContainer.appendChild(badge);
     });
 }
 
-function getCurrentTags() {
-    return Array.from(document.querySelectorAll("#current-tags .badge")).map(b => b.innerText.trim());
+function getCurrentTags(containerId = "current-tags") {
+    return Array.from(document.querySelectorAll(`#${containerId} .badge`)).map(b => b.innerText.trim());
 }
 
-function populateTagDropdown(currentTags = []) {
-    const dropdown = document.getElementById("tag-dropdown");
+function populateTagDropdown(currentTags = [], dropdownId = "tag-dropdown", containerId = "current-tags") {
+    const dropdown = document.getElementById(dropdownId);
+    if (!dropdown) return;
     dropdown.innerHTML = '<option value="">-- Select Tag --</option>';
 
     (window.availableCategories || []).forEach(cat => {
@@ -732,15 +818,13 @@ function populateTagDropdown(currentTags = []) {
             newTag.className = "badge bg-success text-light me-1";
             newTag.textContent = selected;
             newTag.style.cursor = "pointer";
-
             newTag.addEventListener("click", () => {
                 newTag.remove();
-                populateTagDropdown(getCurrentTags());
+                populateTagDropdown(getCurrentTags(containerId), dropdownId, containerId);
             });
-
-            document.getElementById("current-tags").appendChild(newTag);
+            document.getElementById(containerId).appendChild(newTag);
             this.value = "";
-            populateTagDropdown(getCurrentTags()); // Refresh to exclude just-added
+            populateTagDropdown(getCurrentTags(containerId), dropdownId, containerId);
         }
     };
 }

@@ -4,6 +4,11 @@ include '../config db.php';
 
 $error = "";
 
+if (isset($_SESSION['error_auth'])) {
+    $error = $_SESSION['error_auth'];
+    unset($_SESSION['error_auth']); // clear it after use
+}
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $action = $_POST['action'];
     $email = trim($_POST['email']);
@@ -22,16 +27,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 header("Location: ../taskflow/dashboard.php");
                 exit();
             } else {
-                $error = "Invalid password";
+                $_SESSION['error_auth'] = "Invalid password";
+                header("Location: auth.php?form=login");
+                exit();
             }
         } else {
-            $error = "User not found";
+            $_SESSION['error_auth'] = "User not found";
+            header("Location: auth.php?form=login");
+            exit();
         }
     } elseif ($action == "signup") {
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $error = "Invalid email format";
+            $_SESSION['error_auth'] = "Invalid email format";
+            header("Location: auth.php?form=login");
+            exit();
         } elseif (strlen($password) < 6) {
-            $error = "Password must be at least 6 characters long";
+            $_SESSION['error_auth'] = "Password must be at least 6 characters long";
+            header("Location: auth.php?form=login");
+            exit();
         } else {
             // Check if email already exists
             $check = $conn->prepare("SELECT id FROM users WHERE email = ?");
@@ -40,7 +53,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $checkResult = $check->get_result();
         
             if ($checkResult->num_rows > 0) {
-                $error = "An account with this email already exists";
+                $_SESSION['error_auth'] = "An account with this email already exists";
+                header("Location: auth.php?form=login");
+                exit();
             } else {
                 $hashed_password = password_hash($password, PASSWORD_BCRYPT);
                 $stmt = $conn->prepare("INSERT INTO users (email, password) VALUES (?, ?)");
@@ -50,7 +65,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     header("Location: auth.php?success=registered");
                     exit();
                 } else {
-                    $error = "Error creating account";
+                    $_SESSION['error_auth'] = "Error creating account";
+                    header("Location: auth.php?form=login");
+                    exit();
                 }
             }
         }
@@ -94,7 +111,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <button type="submit" class="btn btn-secondary w-100 ">Sign In</button>
 
                 <p class="mt-3 text-center">
-                    Don't have an account? <a href="#" onclick="toggleForm('signup')" class='white-text'>Sign up</a>
+                    Don't have an account? <a href="#" onclick="toggleForm('signup'); formJustSwitched = true" class='white-text'>Sign up</a>
                 </p>
 
                 <?php if (!empty($error)) echo "<p id='error-message' class='text-warning text-center'>$error</p>"; ?>
@@ -105,64 +122,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     </div>
 
-    <script>
-        // Function to change the active link
-        function setActiveLink(link) {
-            // Remove active class from all links
-            const links = document.querySelectorAll('.nav-link');
-            links.forEach((el) => el.classList.remove('active'));
-
-            // Add active class to the clicked link
-            link.classList.add('active');
-        }
-
-        // Toggle the form content (login/signup)
-        function toggleForm(type) {
-            // Change the form title and button text
-            document.getElementById("form-action").value = type;
-            document.getElementById("form-title").innerText = type === "login" ? "Login" : "Sign Up";
-            document.querySelector("button[type='submit']").innerText = type === "login" ? "Sign In" : "Register";
-
-
-            
-            // Change the link text in the form
-            document.querySelector("p").innerHTML = type === "login" ? 
-                "Don't have an account? <a href='#' onclick='toggleForm(\"signup\")' class='white-text'>Sign up</a>" : 
-                "Already have an account? <a href='#' onclick='toggleForm(\"login\")' class='white-text'>Login</a>";
-
-            // Clear error message
-            const errorEl = document.getElementById('error-message');
-            if (errorEl) {
-                errorEl.innerText = '';
-            }
-
-            // Set active class on the correct button
-            const loginButton = document.getElementById('login-btn');
-            const signupButton = document.getElementById('signup-btn');
-
-            if (type === 'login') {
-                // Activate the login button
-                loginButton.classList.add('active');
-                signupButton.classList.remove('active');
-            } else if (type === 'signup') {
-                // Activate the signup button
-                signupButton.classList.add('active');
-                loginButton.classList.remove('active');
-            }
-        }
-
-        // Initially set active class based on default state (login)
-        window.onload = function () {
-            const params = new URLSearchParams(window.location.search);
-            const formType = params.get('form'); // Will be 'signup' or 'login'
-
-            if (formType === 'signup' || formType === 'login') {
-                toggleForm(formType);
-            } else {
-                toggleForm('login'); // default fallback
-            }
-        };
-
-    </script>
+<script src="../assets/javascript/auth.js"></script>
 </body>
 </html>

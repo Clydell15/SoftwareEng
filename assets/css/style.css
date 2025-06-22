@@ -466,14 +466,14 @@ body.auth-page {
 }
 
 .taggys {
-    margin-right: 55px;
+    margin-right: 55px !important;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
 }
 
 .subtaggys {
-    margin-right: 55px !important;
+    margin-right: 30px !important;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;

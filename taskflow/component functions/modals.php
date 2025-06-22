@@ -1,5 +1,5 @@
 
-<!-- Task -->
+<!-- Task add ai/manual -->
 <div class="modal fade" id="addTaskModal" data-bs-backdrop="static" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -9,12 +9,38 @@
             </div>
             <div class="modal-body">
                 <form id="taskForm" autocomplete="off">
+                    <!-- Manual Add Toggle -->
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="manualTaskToggle">
+                        <label class="form-check-label" for="manualTaskToggle">Manually add task</label>
+                    </div>
+
+                    <!-- Common: Task Title -->
                     <div class="mb-3">
                         <label for="taskTitle" class="form-label">Task Title</label>
                         <input type="text" id="taskTitle" name="taskTitle" class="form-control" required>
                     </div>
 
-                    
+                    <!-- Manual Fields (hidden by default) -->
+                    <div id="manualTaskFields" style="display: none;">
+                        <div class="mb-3">
+                            <label for="manual-difficulty" class="form-label">Difficulty</label>
+                            <input type="range" class="form-range" min="1" max="10" step="0.1" id="manual-difficulty" name="difficulty_numeric">
+                            <div id="manual-difficulty-value" class="text-end"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Current Categories</label>
+                            <div id="manual-current-tags" class="d-flex flex-wrap gap-1"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Add Category</label>
+                            <select id="manual-tag-dropdown" class="form-select">
+                                <option value="">-- Select Category --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Deadline (always shown) -->
                     <div class="mb-3">
                         <label for="dueDate" class="form-label">Due Date</label>
                         <input type="datetime-local" id="dueDate" name="dueDate" class="form-control" required>
@@ -31,6 +57,9 @@
         </div>
     </div>
 </div>
+
+
+
 
 <!-- Category -->
 <div class="modal fade" id="addCategoryModal" tabindex="-1">
@@ -122,15 +151,20 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">Current Tags</label>
+                        <label class="form-label">Current Categories</label>
                         <div id="current-tags" class="d-flex flex-wrap gap-1"></div>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">Add Tag</label>
+                        <label class="form-label">Add Category</label>
                         <select id="tag-dropdown" class="form-select">
-                            <option value="">-- Select Tag --</option>
+                            <option value="">-- Select Category --</option>
                         </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="edit-dueDate" class="form-label">Due Date</label>
+                        <input type="datetime-local" id="edit-dueDate" name="dueDate" class="form-control" required>
                     </div>
 
                     <div class="d-flex justify-content-center">

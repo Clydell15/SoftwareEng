@@ -29,7 +29,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     // **CASE 1: Creating a Parent Task**
     if (!$parentTaskId) {
         $aiPrompt = "Analyze the task: \"$taskTitle\". Follow these steps:
-        - Assign a difficulty numeric value (0.1 - 10.0), with easy (0.0-4.0), medium (4.1-7.5), and hard (7.6-10.0).
+        - Assign a difficulty numeric value (1.0 - 10.0), with easy (0.0-4.0), medium (4.1-7.5), and hard (7.6-10.0).
         - Use only the user's provided categories: [$categoriesList].
         - Return JSON only, exactly in this format (no extra quotes or escape characters):
         {
