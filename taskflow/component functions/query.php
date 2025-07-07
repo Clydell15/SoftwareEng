@@ -5,7 +5,6 @@ include '../authentication/session.php';
 $userId = $_SESSION['user_id'];
 $conn->set_charset("utf8"); // Ensure UTF-8 encoding
 
-
 function fetchResults($conn, $query, $params = [])
 {
     $stmt = $conn->prepare($query);
@@ -33,6 +32,7 @@ function fetchTasks($conn, $userId, $statusCondition)
         LEFT JOIN tags ON task_tags.tag_id = tags.id
         WHERE $statusCondition 
         AND tasks.user_id = ?  
+        AND tasks.archived = 0
         GROUP BY tasks.id
         ORDER BY tasks.position IS NULL, tasks.position ASC, tasks.created_at DESC";
     
@@ -61,8 +61,6 @@ function organizeTasks($taskResults)
         }
     }
 
-    
-
     return $tasks;
 }
 
@@ -79,16 +77,19 @@ $completedTasks = fetchTasks($conn, $userId, "tasks.status = 'completed'");
 $completedTasks = organizeTasks($completedTasks);
 
 /**
- * Fetch categories (tags).
+ * Fetch categories (tags) that are not archived.
  */
-$categories = fetchResults($conn, "SELECT * FROM tags ORDER BY name ASC");
+$categories = fetchResults($conn, "SELECT * FROM tags WHERE archived = 0 ORDER BY name ASC");
 
-
+/**
+ * For editing: fetch tags not already assigned to the task and not archived.
+ */
 $taskId = $taskId ?? 0;
 
 $userTagsForEdit = fetchResults($conn, "
     SELECT * FROM tags 
     WHERE user_id = ? 
+    AND archived = 0
     AND id NOT IN (
         SELECT tag_id FROM task_tags WHERE task_id = ?
     )

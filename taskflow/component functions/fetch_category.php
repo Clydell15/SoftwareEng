@@ -1,5 +1,5 @@
 <?php
-$stmtTags = $conn->prepare("SELECT * FROM tags WHERE user_id = ? ORDER BY id DESC");
+$stmtTags = $conn->prepare("SELECT * FROM tags WHERE user_id = ? AND archived = 0 ORDER BY id DESC");
 $stmtTags->bind_param("i", $_SESSION['user_id']);
 $stmtTags->execute();
 $resultTags = $stmtTags->get_result();

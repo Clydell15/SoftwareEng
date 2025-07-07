@@ -47,7 +47,7 @@
                     </div>
 
                     <div class="d-flex justify-content-center">
-                        <button type="submit" class="btn btn-success">
+                        <button type="submit" class="btn btn-success w-100">
                             Add Task
                             <span class="spinner-border spinner-border-sm ms-2 d-none" role="status"></span>
                         </button>
@@ -76,7 +76,7 @@
                         <input type="text" id="categoryName" name="categoryName" class="form-control" required>
                     </div>
                     <div class="d-flex justify-content-center">
-                        <button type="submit" class="btn btn-success">
+                        <button type="submit" class="btn btn-success w-100">
                             Add Category
                             <span class="spinner-border spinner-border-sm ms-2 d-none" role="status"></span>
                         </button>
@@ -103,10 +103,34 @@
                     <input type="hidden" id="parentTaskTitle" name="parentTaskTitle">
                     <input type="hidden" id="aiGenerate" name="ai_generate" value="0">
 
-                    <!-- AI Generate Toggle -->
+                    <!-- Manual Add Toggle -->
                     <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="manualSubtaskToggle">
+                        <label class="form-check-label" for="manualSubtaskToggle">Manually add subtask</label>
+                    </div>
+                    <!-- AI Generate Toggle (hidden when manual is on) -->
+                    <div class="form-check form-switch mb-3" id="aiToggleContainer">
                         <input class="form-check-input" type="checkbox" id="aiToggle">
                         <label class="form-check-label" for="aiToggle">AI Generate Subtasks</label>
+                    </div>
+
+                    <!-- Manual Fields (hidden by default) -->
+                    <div id="manualSubtaskFields" style="display: none;">
+                        <div class="mb-3">
+                            <label for="manual-subtask-difficulty" class="form-label">Difficulty</label>
+                            <input type="range" class="form-range" min="1" max="10" step="0.1" id="manual-subtask-difficulty" name="difficulty_numeric">
+                            <div id="manual-subtask-difficulty-value" class="text-end"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Current Categories</label>
+                            <div id="manual-subtask-current-tags" class="d-flex flex-wrap gap-1"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Add Category</label>
+                            <select id="manual-subtask-tag-dropdown" class="form-select">
+                                <option value="">-- Select Category --</option>
+                            </select>
+                        </div>
                     </div>
 
                     <!-- Subtask Title / Number of Subtasks -->
@@ -115,7 +139,7 @@
                         <input type="text" id="subtaskTitle" name="subtaskTitle" class="form-control" required>
                     </div>
                     <div class="d-flex justify-content-center">
-                        <button type="submit" class="btn btn-success">
+                        <button type="submit" class="btn btn-success w-100">
                             Add Subtask
                             <span class="spinner-border spinner-border-sm ms-2 d-none" role="status"></span>
                         </button>
@@ -168,7 +192,7 @@
                     </div>
 
                     <div class="d-flex justify-content-center">
-                        <button type="submit" id="editFormSubmitBtn" class="btn btn-success">
+                        <button type="submit" id="editFormSubmitBtn" class="btn btn-success w-100">
                             Save Changes
                         </button>
                     </div>

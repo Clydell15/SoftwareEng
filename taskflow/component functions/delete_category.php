@@ -16,7 +16,7 @@ if (!isset($_POST['categoryId'])) {
 $categoryId = intval($_POST['categoryId']);
 $userId = $_SESSION['user_id'];
 
-// ✅ Check if task_tags connections exist
+// Remove task_tags connections (optional, or keep for restore)
 $checkStmt = $conn->prepare("SELECT COUNT(*) FROM task_tags WHERE tag_id = ? AND user_id = ?");
 $checkStmt->bind_param("ii", $categoryId, $userId);
 $checkStmt->execute();
@@ -24,7 +24,6 @@ $checkStmt->bind_result($usageCount);
 $checkStmt->fetch();
 $checkStmt->close();
 
-// ✅ If any exist, delete them first
 if ($usageCount > 0) {
     $deleteLinks = $conn->prepare("DELETE FROM task_tags WHERE tag_id = ? AND user_id = ?");
     $deleteLinks->bind_param("ii", $categoryId, $userId);
@@ -32,12 +31,12 @@ if ($usageCount > 0) {
     $deleteLinks->close();
 }
 
-// ✅ Then delete the category from tags
-$stmt = $conn->prepare("DELETE FROM tags WHERE id = ? AND user_id = ?");
+// Archive the category instead of deleting
+$stmt = $conn->prepare("UPDATE tags SET archived = 1 WHERE id = ? AND user_id = ?");
 $stmt->bind_param("ii", $categoryId, $userId);
 
 if ($stmt->execute()) {
-    echo json_encode(["success" => true, "message" => "Category and connections deleted"]);
+    echo json_encode(["success" => true, "message" => "Category deleted successfully"]);
 } else {
     echo json_encode(["success" => false, "message" => "Failed to delete category"]);
 }

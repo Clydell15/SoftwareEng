@@ -16,12 +16,16 @@ CREATE TABLE users (
     short_breaks INT DEFAULT 0,
     long_breaks INT DEFAULT 0,
     pomodoro_goal INT DEFAULT 8
+    is_verified TINYINT(1) DEFAULT 0,
+    verification_code VARCHAR(255) DEFAULT NULL;
+    forgot_code VARCHAR(255) DEFAULT NULL;
 );
 -- Tags Table
 CREATE TABLE tags (
     id INT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(255) NOT NULL,
     user_id INT NOT NULL,
+    archived TINYINT(1) DEFAULT 0,
     UNIQUE KEY unique_tag_per_user (name, user_id),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
@@ -41,6 +45,7 @@ CREATE TABLE tasks (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     due_date DATETIME DEFAULT NULL,
     completed_at DATETIME NULL,
+    archived TINYINT(1) DEFAULT 0,
     FOREIGN KEY (parent_task_id) REFERENCES tasks(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );

@@ -34,12 +34,22 @@ if (!empty($_POST['taskTitle']) && !empty($_POST['difficulty_numeric'])) {
 // 📌 FUNCTION: Add Task
 // ========================
 function handleTaskAddition($conn, $userId) {
-    $title = trim($_POST['taskTitle']);
-    $difficultyNumeric = floatval($_POST['difficulty_numeric']);
-    
-    $rawTags = $_POST['tags'];
+    $titleRaw = $_POST['taskTitle'];
+    $titleTrimmed = trim($titleRaw);
 
-    // Try to decode as JSON if the input is a valid JSON string
+    if ($titleTrimmed === "") {
+        echo json_encode(["success" => false, "message" => "Task title cannot be empty or only spaces"]);
+        exit();
+    }
+    if ($titleRaw !== $titleTrimmed) {
+        echo json_encode(["success" => false, "message" => "Task title cannot start or end with spaces"]);
+        exit();
+    }
+
+    $title = $titleTrimmed;
+
+    $difficultyNumeric = floatval($_POST['difficulty_numeric']);
+    $rawTags = $_POST['tags'];
     $tags = json_decode($rawTags, true);
 
     // If json_decode fails (tags were not in valid JSON format), treat it as a comma-separated string
@@ -139,9 +149,20 @@ function handleTaskAddition($conn, $userId) {
 // 📌 FUNCTION: Add Category
 // ========================
 function handleCategoryAddition($conn, $userId) {
-    $categoryName = trim($_POST['categoryName']);
-    $categoryId = null;
+    $categoryRaw = $_POST['categoryName'];
+    $categoryTrimmed = trim($categoryRaw);
 
+    if ($categoryTrimmed === "") {
+        echo json_encode(["success" => false, "message" => "Category name cannot be empty or only spaces"]);
+        exit();
+    }
+    if ($categoryRaw !== $categoryTrimmed) {
+        echo json_encode(["success" => false, "message" => "Category name cannot start or end with spaces"]);
+        exit();
+    }
+
+    $categoryName = $categoryTrimmed;
+    $categoryId = null;
     // 🔹 Check if the tag already exists for this user
     $stmt = $conn->prepare("SELECT id FROM tags WHERE name = ? AND user_id = ?");
     $stmt->bind_param("si", $categoryName, $userId);
@@ -183,7 +204,22 @@ function handleCategoryAddition($conn, $userId) {
 // 📌 FUNCTION: Add Subtask
 // ========================
 function handleSubtaskAddition($conn, $userId) {
-    $subtaskTitle = trim($_POST['subtaskTitle']);
+    $subtaskTitleRaw = $_POST['subtaskTitle'];
+    $subtaskTitleTrimmed = trim($subtaskTitleRaw);
+
+    // Check for empty or only spaces
+    if ($subtaskTitleTrimmed === "") {
+        echo json_encode(["success" => false, "message" => "Subtask title cannot be empty or only spaces"]);
+        exit();
+    }
+    // Check for leading/trailing spaces
+    if ($subtaskTitleRaw !== $subtaskTitleTrimmed) {
+        echo json_encode(["success" => false, "message" => "Subtask title cannot start or end with spaces"]);
+        exit();
+    }
+
+    $subtaskTitle = $subtaskTitleTrimmed;
+
     $difficultyNumeric = floatval($_POST['difficulty_numeric']);
     
     $rawTags = $_POST['tags'];

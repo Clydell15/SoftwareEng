@@ -17,37 +17,35 @@ if (!isset($_POST['taskId']) || empty($_POST['taskId'])) {
 
 $taskId = intval($_POST['taskId']);
 
-handleTaskDeletion($conn, $userId, $taskId);
+handleTaskArchiving($conn, $userId, $taskId);
 
 // ========================
-// 📌 FUNCTION: Delete Task/Subtask
+// 📌 FUNCTION: Archive Task/Subtask
 // ========================
-function handleTaskDeletion($conn, $userId, $taskId) {
-    // 🔹 Ensure $parentTaskId is defined as NULL
+function handleTaskArchiving($conn, $userId, $taskId) {
     $parentTaskId = null;
 
-    // 🔹 Check if the task exists and retrieve its parent_task_id
-    $stmt = $conn->prepare("SELECT parent_task_id FROM tasks WHERE id = ? AND user_id = ?
-");
+    // Check if the task exists and retrieve its parent_task_id
+    $stmt = $conn->prepare("SELECT parent_task_id FROM tasks WHERE id = ? AND user_id = ?");
     $stmt->bind_param("ii", $taskId, $userId);
     $stmt->execute();
     $stmt->bind_result($parentTaskId);
-    
-    if (!$stmt->fetch()) { // ❗ If no row is found, return an error
-        echo json_encode(["success" => false, "message" => "Task not found or you don't have permission to delete it"]);
+
+    if (!$stmt->fetch()) {
+        echo json_encode(["success" => false, "message" => "Task not found or you don't have permission to archive it"]);
         $stmt->close();
         exit();
     }
     $stmt->close();
 
-    // 🔹 If parent_task_id is NULL, it's a parent task
-    if (is_null($parentTaskId)) { 
-        // Delete the parent task and its subtasks
-        $stmt = $conn->prepare("DELETE FROM tasks WHERE id = ?");
-        $stmt->bind_param("i", $taskId);
+    // Archive the task (and optionally subtasks if parent)
+    if (is_null($parentTaskId)) {
+        // Archive the parent task and its subtasks
+        $stmt = $conn->prepare("UPDATE tasks SET archived = 1 WHERE id = ? OR parent_task_id = ?");
+        $stmt->bind_param("ii", $taskId, $taskId);
     } else {
-        // Delete only the subtask
-        $stmt = $conn->prepare("DELETE FROM tasks WHERE id = ?");
+        // Archive only the subtask
+        $stmt = $conn->prepare("UPDATE tasks SET archived = 1 WHERE id = ?");
         $stmt->bind_param("i", $taskId);
     }
 

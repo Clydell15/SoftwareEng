@@ -7,6 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initForms();
     restoreScroll();
     manualAddTask();
+    manualAddSubtask();
 });
 
 window.addEventListener("load", () => setTimeout(restoreScroll, 50));
@@ -53,6 +54,34 @@ function manualAddTask(){
                 renderCurrentTags([], "manual-current-tags");
                 populateTagDropdown([], "manual-tag-dropdown", "manual-current-tags");
             } else {
+                manualFields.style.display = "none";
+            }
+        });
+    }
+}
+
+function manualAddSubtask() {
+    const manualToggle = document.getElementById("manualSubtaskToggle");
+    const aiToggleContainer = document.getElementById("aiToggleContainer");
+    const manualFields = document.getElementById("manualSubtaskFields");
+    const manualDifficulty = document.getElementById("manual-subtask-difficulty");
+    const manualDifficultyValue = document.getElementById("manual-subtask-difficulty-value");
+
+    if (manualToggle && aiToggleContainer && manualFields) {
+        manualToggle.addEventListener("change", function () {
+            if (this.checked) {
+                aiToggleContainer.style.display = "none";
+                manualFields.style.display = "";
+                if (manualDifficulty && manualDifficultyValue) {
+                    manualDifficultyValue.textContent = `Difficulty: ${parseFloat(manualDifficulty.value).toFixed(1)}`;
+                    manualDifficulty.addEventListener("input", () => {
+                        manualDifficultyValue.textContent = `Difficulty: ${parseFloat(manualDifficulty.value).toFixed(1)}`;
+                    });
+                }
+                renderCurrentTags([], "manual-subtask-current-tags");
+                populateTagDropdown([], "manual-subtask-tag-dropdown", "manual-subtask-current-tags");
+            } else {
+                aiToggleContainer.style.display = "";
                 manualFields.style.display = "none";
             }
         });
@@ -210,7 +239,11 @@ async function handleFormSubmit(event) {
                     addTaskToUI(addData.task);
                 } else {
                     const errorMessage = addData && addData.message ? addData.message : "Unknown error occurred";
-                    throw new Error("Error adding task: " + errorMessage);
+                    showModalError(form, "Error adding task: " + errorMessage);
+                    submitButton.innerHTML = originalText;
+                    if (hasSpinner) spinner.classList.add("d-none");
+                    submitButton.disabled = false;
+                    return;
                 }
             } else {
                 // AI Add: Use your existing AI logic
@@ -255,8 +288,35 @@ async function handleFormSubmit(event) {
             }
         }
         
+        // **CASE 2: SUBTASK FORM (MANUAL ADD)**
+        else if (form.id === "subtaskForm" && document.getElementById("manualSubtaskToggle")?.checked) {
+            const difficulty = form.querySelector('input[name="difficulty_numeric"]')?.value || 5;
+            const tags = getCurrentTags("manual-subtask-current-tags");
+            const subtaskTitleRaw = subtaskTitle;
+            const subtaskTitleTrimmed = subtaskTitleRaw.trim();
 
-        // **CASE 2: SUBTASK FORM (AI ON)**
+            if (subtaskTitleTrimmed === "") throw new Error("Error adding subtask: Subtask title cannot be empty or only spaces.");
+            if (subtaskTitleRaw !== subtaskTitleTrimmed) throw new Error("Error adding subtask: Subtask title cannot start or end with spaces.");
+            
+            const addData = await addSubtaskToDatabase(
+                parentTaskId,
+                subtaskTitle,
+                difficulty,
+                tags
+            );
+
+            if (addData && addData.success) {
+                form.reset();
+                closeModal(form);
+                addTaskToUI(addData.subtask);
+            } else {
+                const errorMessage = addData && addData.message ? addData.message : "Unknown error occurred";
+                throw new Error("Error adding subtask: " + errorMessage);
+            }
+            return;
+        }
+
+        // **CASE 3: SUBTASK FORM (AI ON)**
         else if (form.id === "subtaskForm" && aiGenerate) {
             formData.append("taskTitle", parentTaskTitle);
             formData.append("numSubtasks", subtaskTitle);
@@ -296,7 +356,7 @@ async function handleFormSubmit(event) {
             refreshTaskList();
         }
 
-        // **CASE 3: SUBTASK FORM (AI OFF)**
+        // **CASE 4: SUBTASK FORM (AI OFF)**
         else if (form.id === "subtaskForm" && !aiGenerate) {
             if (!subtaskTitle) throw new Error("Subtask title is required.");
 
@@ -338,11 +398,17 @@ async function handleFormSubmit(event) {
             }
         }
 
-        // **CASE 4: CATEGORY FORM**
+        // **CASE 5: CATEGORY FORM**
         else if (form.id === "categoryForm") {
             let categoryName = form.querySelector('input[name="categoryName"]')?.value || "";
 
-            if (!categoryName) throw new Error("Category title is required.");
+            if (!categoryName) {
+                showModalError(form, "Category title is required.");
+                submitButton.innerHTML = originalText;
+                if (hasSpinner) spinner.classList.add("d-none");
+                submitButton.disabled = false;
+                return;
+            }
 
             formData.append("categoryName", categoryName);
 
@@ -364,17 +430,21 @@ async function handleFormSubmit(event) {
                 closeModal(form);
                 refreshTaskList();
             } else {
-        
-                form.reset();
-                closeModal(form);
-                throw new Error("Error adding category: " + categoryData.message);
+                showModalError(form, "Error adding category: " + (categoryData.message || "Unknown error"));
+                submitButton.innerHTML = originalText;
+                if (hasSpinner) spinner.classList.add("d-none");
+                submitButton.disabled = false;
+                return;
             }
         }
 
 
     } catch (error) {
-        console.error("Form submission error:", error);
-        alert(error.message);
+        showModalError(form, error.message);
+        submitButton.innerHTML = originalText;
+        if (hasSpinner) spinner.classList.add("d-none");
+        submitButton.disabled = false;
+        return;
     } finally {
         submitButton.innerHTML = originalText;
         if (hasSpinner) spinner.classList.add("d-none");
@@ -389,31 +459,32 @@ async function saveEditTask(form) {
     const typeInput = form.querySelector('input[name="type"]');
     const titleInput = form.querySelector('input[name="title"]');
     const difficultyInput = form.querySelector('input[name="difficulty"]');
-    console.log("🔍 id:", idInput);
-    console.log("🔍 type:", typeInput);
-    console.log("🔍 title:", titleInput);
-    console.log("🔍 difficulty:", difficultyInput);
+    const modal = form.closest(".modal");
+    const modalBody = modal?.querySelector(".modal-body");
 
+    // Remove any previous error message
+    const existingError = modalBody?.querySelector("#error-message");
+    if (existingError) existingError.remove();
 
     if (!idInput || !typeInput || !titleInput || !difficultyInput) {
-        console.error("❌ One or more input fields are missing in the edit form.");
+        showModalError(form, "One or more input fields are missing in the edit form.");
         return;
     }
 
     const id = idInput.value;
     const type = typeInput.value;
-    const title = titleInput.value.trim();
+    const title = titleInput.value;
     const difficulty = parseFloat(difficultyInput.value) || 0;
-    const tags = getCurrentTags(); // Make sure this exists and returns array or string
-    console.log("🔍 id:", id);
-    console.log("🔍 type:", type);
-    console.log("🔍 title:", title);
-    console.log("🔍 difficulty:", difficulty);
-    console.log("🔍 tags:", tags);
+    const tags = getCurrentTags();
 
-
-    if (!title) {
-        console.error("⚠️ Task title is required.");
+    // Space validation
+    const titleTrimmed = title.trim();
+    if (titleTrimmed === "") {
+        showModalError(form, "Task title cannot be empty or only spaces.");
+        return;
+    }
+    if (title !== titleTrimmed) {
+        showModalError(form, "Task title cannot start or end with spaces.");
         return;
     }
 
@@ -426,21 +497,35 @@ async function saveEditTask(form) {
 
         const rawText = await response.text();
         console.log("🔹 Raw Edit Task Response:", rawText);
-        
         const data = JSON.parse(rawText);
 
         if (data.success) {
             console.log("✅ Task updated successfully:", data.task);
-            // Handle success: reset form, close modal, refresh list
             form.reset();
             closeModal(form);
-            refreshTaskList();
+            // Optionally update the UI here instead of reloading
         } else {
-            throw new Error(data.message || "Failed to save task changes.");
+            showModalError(form, data.message || "Failed to save task changes.");
         }
     } catch (error) {
         console.error("❌ Error saving task:", error.message);
+        showModalError(form, error.message || "An error occurred while saving the task.");
     }
+}
+
+// Helper to show error inside modal
+function showModalError(form, message) {
+    const modal = form.closest(".modal");
+    const modalBody = modal?.querySelector(".modal-body");
+    if (!modalBody) return;
+    let errorElem = modalBody.querySelector("#error-message");
+    if (!errorElem) {
+        errorElem = document.createElement("p");
+        errorElem.id = "error-message";
+        errorElem.className = "text-danger text-center";
+        modalBody.prepend(errorElem);
+    }
+    errorElem.textContent = message;
 }
 
 /**

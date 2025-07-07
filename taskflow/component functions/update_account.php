@@ -34,8 +34,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Validate password and confirmation if new password is set
     if (!empty($new_password) && !empty($confirm_password)) {
+        $new_password_trimmed = trim($new_password);
+        $confirm_password_trimmed = trim($confirm_password);
+
+        if ($new_password_trimmed === "" || $confirm_password_trimmed === "") {
+            $_SESSION['account_error'] = "New password cannot be empty or only spaces.";
+            header("Location: ../settings.php");
+            exit();
+        }
+        // Check for leading or trailing spaces
+        if ($new_password !== $new_password_trimmed || $confirm_password !== $confirm_password_trimmed) {
+            $_SESSION['account_error'] = "New password cannot start or end with spaces.";
+            header("Location: ../settings.php");
+            exit();
+        }
+        if (strlen($new_password) < 6) {
+            $_SESSION['account_error'] = "New password must be at least 6 characters long.";
+            header("Location: ../settings.php");
+            exit();
+        }
         if ($new_password !== $confirm_password) {
-            $_SESSION['account_error'] = "Passwords do not match.";
+            $_SESSION['account_error'] = "New Password do not match.";
             header("Location: ../settings.php");
             exit();
         }

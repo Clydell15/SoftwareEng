@@ -14,56 +14,46 @@
     <?php include '../taskflow/component functions/navbar_about.php'; ?>
 
     <div class="container-sm mt-3">
-        <img src="../assets/images/devTeam.jpg" class="rounded mx-auto d-block img-fluid" alt="Development Team">
+        <img src="../assets/images/devTeam.jpg" class="rounded mx-auto d-block img-fluid" style="max-width: 750px;" alt="Development Team">
     </div>
 
     
     <div class="container-fluid mt-3 d-flex justify-content-center">
         <h2 class="text-center">Meet the brilliant minds behind the project!</h2>
-        <ul class="list-group">
+        <ul class="list-group list-group-horizontal">
             <li class="list-group-item">John Patrick Palanas</li>
             <li class="list-group-item">Rydell Clyde Serrano</li>
             <li class="list-group-item">Gabriel Verzosa</li>
+            <li class="list-group-item">Ace Merced</li>
         </ul>
     </div>
     
 
 
     <script>
-        // Function to change the active link
         function setActiveLink(link) {
-            // Remove active class from all links
             const links = document.querySelectorAll('.nav-link');
             links.forEach((el) => el.classList.remove('active'));
 
-            // Add active class to the clicked link
             link.classList.add('active');
         }
 
-        // Toggle the form content (login/signup)
         function toggleForm(type) {
-            // Change the form title and button text
             document.getElementById("form-action").value = type;
             document.getElementById("form-title").innerText = type === "login" ? "Login" : "Sign Up";
             document.querySelector("button[type='submit']").innerText = type === "login" ? "Sign In" : "Register";
 
-
-            
-            // Change the link text in the form
             document.querySelector("p").innerHTML = type === "login" ? 
                 "Don't have an account? <a href='#' onclick='toggleForm(\"signup\")' class='white-text'>Sign up</a>" : 
                 "Already have an account? <a href='#' onclick='toggleForm(\"login\")' class='white-text'>Login</a>";
 
-            // Set active class on the correct button
             const loginButton = document.getElementById('login-btn');
             const signupButton = document.getElementById('signup-btn');
 
             if (type === 'login') {
-                // Activate the login button
                 loginButton.classList.add('active');
                 signupButton.classList.remove('active');
             } else if (type === 'signup') {
-                // Activate the signup button
                 signupButton.classList.add('active');
                 loginButton.classList.remove('active');
             }

@@ -1,27 +1,44 @@
 <?php
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
 include '../config db.php';
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+require_once 'PHPMailer/src/PHPMailer.php';
+require_once 'PHPMailer/src/SMTP.php';
+require_once 'PHPMailer/src/Exception.php';
 
 $error = "";
 
 if (isset($_SESSION['error_auth'])) {
     $error = $_SESSION['error_auth'];
-    unset($_SESSION['error_auth']); // clear it after use
+    unset($_SESSION['error_auth']);
+}
+
+$success = "";
+if (isset($_SESSION['success_auth'])) {
+    $success = $_SESSION['success_auth'];
+    unset($_SESSION['success_auth']);
 }
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $action = $_POST['action'];
-    $email = trim($_POST['email']);
-    $password = trim($_POST['password']);
+    $email = $_POST['email'];
+    $password = $_POST['password'];
 
     if ($action == "login") {
-        $stmt = $conn->prepare("SELECT id, password FROM users WHERE email = ?");
-        $stmt->bind_param("s", $email);
+        $emailLogin = trim($email);
+        $stmt = $conn->prepare("SELECT id, password, is_verified FROM users WHERE email = ?");
+        $stmt->bind_param("s", $emailLogin);
         $stmt->execute();
         $result = $stmt->get_result();
 
         if ($result->num_rows > 0) {
             $user = $result->fetch_assoc();
+            if (isset($user['is_verified']) && !$user['is_verified']) {
+                $_SESSION['error_auth'] = "Please verify your email before logging in.";
+                header("Location: auth.php?form=login");
+                exit();
+            }
             if (password_verify($password, $user['password'])) {
                 $_SESSION['user_id'] = $user['id'];
                 header("Location: ../taskflow/dashboard.php");
@@ -37,41 +54,63 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             exit();
         }
     } elseif ($action == "signup") {
+        $emailTrimmed = trim($email);
+        $passwordTrimmed = trim($password);
+
+        // Check for empty or only spaces
+        if ($emailTrimmed === "" || $passwordTrimmed === "") {
+            $_SESSION['error_auth'] = "Email and password cannot be empty or only spaces";
+            header("Location: auth.php?form=signup");
+            exit();
+        }
+        // Check for leading/trailing spaces
+        if ($email !== $emailTrimmed) {
+            $_SESSION['error_auth'] = "Email cannot start or end with spaces";
+            header("Location: auth.php?form=signup");
+            exit();
+        }
+        if ($password !== $passwordTrimmed) {
+            $_SESSION['error_auth'] = "Password cannot start or end with spaces";
+            header("Location: auth.php?form=signup");
+            exit();
+        }
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $_SESSION['error_auth'] = "Invalid email format";
-            header("Location: auth.php?form=login");
+            header("Location: auth.php?form=signup");
             exit();
-        } elseif (strlen($password) < 6) {
+        }
+        if (strlen($password) < 6) {
             $_SESSION['error_auth'] = "Password must be at least 6 characters long";
-            header("Location: auth.php?form=login");
+            header("Location: auth.php?form=signup");
+            exit();
+        }
+
+        $check = $conn->prepare("SELECT id FROM users WHERE email = ?");
+        $check->bind_param("s", $email);
+        $check->execute();
+        $checkResult = $check->get_result();
+
+        if ($checkResult->num_rows > 0) {
+            $_SESSION['error_auth'] = "An account with this email already exists";
+            header("Location: auth.php?form=signup");
             exit();
         } else {
-            // Check if email already exists
-            $check = $conn->prepare("SELECT id FROM users WHERE email = ?");
-            $check->bind_param("s", $email);
-            $check->execute();
-            $checkResult = $check->get_result();
-        
-            if ($checkResult->num_rows > 0) {
-                $_SESSION['error_auth'] = "An account with this email already exists";
-                header("Location: auth.php?form=login");
+            $hashed_password = password_hash($password, PASSWORD_BCRYPT);
+            $verification_code = strtoupper(bin2hex(random_bytes(3)));
+            $stmt = $conn->prepare("INSERT INTO users (email, password, verification_code) VALUES (?, ?, ?)");
+            $stmt->bind_param("sss", $email, $hashed_password, $verification_code);
+
+            if ($stmt->execute()) {
+                $_SESSION['pending_email'] = $email;
+                unset($_SESSION['verification_email_sent']);
+                header("Location: verify.php?email=" . urlencode($email));
                 exit();
             } else {
-                $hashed_password = password_hash($password, PASSWORD_BCRYPT);
-                $stmt = $conn->prepare("INSERT INTO users (email, password) VALUES (?, ?)");
-                $stmt->bind_param("ss", $email, $hashed_password);
-        
-                if ($stmt->execute()) {
-                    header("Location: auth.php?success=registered");
-                    exit();
-                } else {
-                    $_SESSION['error_auth'] = "Error creating account";
-                    header("Location: auth.php?form=login");
-                    exit();
-                }
+                $_SESSION['error_auth'] = "Error creating account";
+                header("Location: auth.php?form=signup");
+                exit();
             }
         }
-        
     }
 } elseif (isset($_SESSION['user_id'])) {
     header("Location: ../taskflow/dashboard.php");
@@ -108,14 +147,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <input type="password" name="password" class="form-control rounded" placeholder="Password" required>
                 </div>
                 
-                <button type="submit" class="btn btn-secondary w-100 ">Sign In</button>
-
+                <button type="submit" id="register-btn" class="btn btn-secondary w-100">
+                    <span id="register-spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                    <span id="register-btn-text">Sign In</span>
+                </button>
                 <p class="mt-3 text-center">
                     Don't have an account? <a href="#" onclick="toggleForm('signup'); formJustSwitched = true" class='white-text'>Sign up</a>
                 </p>
+                <p class="mt-3 text-center">
+                    <a href="forgot.php" class="white-text" style="text-decoration: underline;">Forgot password?</a>
+                </p>
 
-                <?php if (!empty($error)) echo "<p id='error-message' class='text-warning text-center'>$error</p>"; ?>
-
+                <?php if (!empty($success)) echo "<p id='success-message' class='alert alert-success text-center' id='success-message'>$success</p>"; ?>
+                <?php if (!empty($error)) echo "<p id='error-message' class='alert alert-danger text-center' id='error-message'>$error</p>"; ?>
             </form>
         </div>
 

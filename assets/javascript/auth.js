@@ -8,6 +8,13 @@ document.addEventListener("DOMContentLoaded", () => {
             toggleForm(link.dataset.toggleForm); // 'signup' or 'login'
         });
     });
+    const action = document.getElementById('form-action').value;
+    if (action === "signup") {
+        const btn = document.getElementById('register-btn');
+        const spinner = document.getElementById('register-spinner');
+        btn.disabled = true;
+        spinner.classList.remove('d-none');
+    }
     attachToggleFormListeners();
 });
 
@@ -26,7 +33,7 @@ function attachToggleFormListeners() {
 function toggleForm(type) {
     document.getElementById("form-action").value = type;
     document.getElementById("form-title").innerText = type === "login" ? "Login" : "Sign Up";
-    document.querySelector("button[type='submit']").innerText = type === "login" ? "Sign In" : "Register";
+    document.getElementById("register-btn-text").innerText = type === "login" ? "Sign In" : "Register";
 
     document.querySelector("p").innerHTML = type === "login"
         ? `Don't have an account? <a href="#" data-toggle-form="signup" class='white-text toggle-form-link'>Sign up</a>`

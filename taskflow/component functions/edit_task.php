@@ -38,9 +38,22 @@ if (!$input) {
     exit;
 }
 
+$titleRaw = $input['title'] ?? '';
+$titleTrimmed = trim($titleRaw);
+
+if ($titleTrimmed === "") {
+    echo json_encode(['success' => false, 'message' => 'Title cannot be empty or only spaces']);
+    exit;
+}
+if ($titleRaw !== $titleTrimmed) {
+    echo json_encode(['success' => false, 'message' => 'Title cannot start or end with spaces']);
+    exit;
+}
+
+$title = $titleTrimmed;
+
 $type = $input['type'] ?? '';
 $id = $input['id'] ?? '';
-$title = $input['title'] ?? '';
 $difficulty = floatval($input['difficulty'] ?? 0);
 $tags = $input['tags'] ?? [];
 if (!is_array($tags)) {
@@ -84,7 +97,7 @@ try {
     $conn->commit();
 
     echo json_encode(['success' => true]);
-
+    error_log("Raw title received: '" . $titleRaw . "'");
 } catch (Exception $e) {
     $conn->rollback();
     echo json_encode(['success' => false, 'message' => $e->getMessage()]);

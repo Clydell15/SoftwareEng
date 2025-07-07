@@ -26,14 +26,13 @@ $user = $_SESSION['user'];
         <div class="task-view-pane mx-auto mt-4 p-3 rounded" style="height: 100vh;">
             <div class="d-flex flex-wrap gap-3 h-100">
 
-                <!-- Upper Left: Account Settings (Spans two rows vertically) -->
+
                 <div class="card" style="flex: 1 1 calc(50% - 0.75rem); height: 100%; display: flex; flex-direction: column;">
-                    <!-- Header -->
+
                     <div class="px-4 py-3 border-bottom bg-light text-center">
                         <h3 class="mb-0 fw-semibold">Account Settings</h3>
                     </div>
 
-                    <!-- Body -->
                     <div class="card-body d-flex flex-column justify-content-between" style="flex: 1;">
                         <form id="account-settings-form" action="../taskflow/component functions/update_account.php" method="POST" class="d-flex flex-column gap-4 flex-grow-1">
                             <div>
@@ -60,32 +59,36 @@ $user = $_SESSION['user'];
                                     echo '<div class="alert alert-success">' . $_SESSION['account_success'] . '</div>';
                                     unset($_SESSION['account_success']);
                                 }
-                                if (isset($_SESSION['error'])) {
+                                if (isset($_SESSION['account_error'])) {
                                     echo '<div class="alert alert-danger">' . $_SESSION['account_error'] . '</div>';
-                                    unset($_SESSION['error']);
+                                    unset($_SESSION['account_error']);
                                 }
                                 ?>
 
 
-                            <!-- Buttons fixed at bottom -->
-                            <div class="mt-auto d-flex justify-content-center gap-3">
-                                <button type="button" id="edit-account-button" class="btn btn-primary w-50" onclick="toggleEditAccount()">Edit Account</button>
-                                <button type="submit" form="account-settings-form" id="save-account-button" class="btn btn-success w-50 d-none">Save Account</button>
+
+                            <div class="mt-auto d-flex flex-column gap-2">
+                                <a href="archive.php" class="btn btn-warning w-100 mb-2">Check Archive</a>
+                                <div class="d-flex gap-3  justify-content-center" id="account-btn-group">
+                                    <button type="button" id="edit-account-button" class="btn btn-primary w-50" onclick="toggleEditAccount()">Edit Account</button>
+                                    <button type="button" id="cancel-account-button" class="btn btn-secondary w-50 d-none" onclick="toggleEditAccount()">Cancel</button>
+                                    <button type="submit" form="account-settings-form" id="save-account-button" class="btn btn-success w-50 d-none">Save Account</button>
+                                </div>
                             </div>
                         </form>
                     </div>
                 </div>
 
-                <!-- Upper Right: Pomodoro Settings (Spans two rows vertically) -->
+
                 <div class="card" style="flex: 1 1 calc(50% - 0.75rem); height: 100%; display: flex; flex-direction: column;">
-                    <!-- Header -->
+
                     <div class="px-4 py-3 border-bottom bg-light text-center">
                         <h3 class="mb-0 fw-semibold">Pomodoro Settings</h3>
                     </div>
 
-                    <!-- Body -->
+
                     <div class="card-body d-flex flex-column justify-content-between" style="flex: 1;">
-                        <!-- Form for updating Pomodoro Settings -->
+
                         <form id="pomodoro-settings-form" action="../taskflow/component functions/update_settings.php" method="POST" class="d-flex flex-column gap-4 flex-grow-1">
                             <div>
                                 <label for="pomodoro_time" class="form-label">Pomodoro Time (minutes)</label>
@@ -118,7 +121,7 @@ $user = $_SESSION['user'];
                                 }
                                 ?>
 
-                            <!-- Buttons fixed at bottom -->
+
                             <div class="mt-auto d-flex justify-content-center gap-3">
                                 <button type="button" id="edit-pomodoro-button" class="btn btn-primary w-50" onclick="toggleEditPomodoro()">Edit Pomodoro Settings</button>
                                 <button type="submit" form="pomodoro-settings-form" id="save-pomodoro-button" class="btn btn-success w-50 d-none">Save Pomodoro Settings</button>
@@ -133,8 +136,7 @@ $user = $_SESSION['user'];
     </div>
 </div>
 
-<!-- Add Task Modal -->
-<?php include '../taskflow/component functions/modals.php'; ?>
+
 <script>
     var userPomodoroSettings = {
         pomodoro: <?php echo json_encode($user['pomodoro_time']); ?>,
