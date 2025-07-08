@@ -58,7 +58,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             header("Location: ../settings.php");
             exit();
         }
-
+        // Prevent using the same password as the old one
+        if (password_verify($new_password, $user['password'])) {
+            $_SESSION['account_error'] = "New password cannot be the same as the old password.";
+            header("Location: ../settings.php");
+            exit();
+        }
         $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
     } else {
         $hashed_password = $user['password']; 
