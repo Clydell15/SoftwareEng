@@ -1,11 +1,16 @@
 <?php
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
-$host = "localhost";
-$user = "root";
-$password = "";
-$database = "taskflow";
-$conn = new mysqli($host, $user, $password, $database);
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
+
+$host     = getenv("DB_HOST");
+$port     = getenv("DB_PORT") ?: "5432"; 
+$dbname   = getenv("DB_NAME");
+$user     = getenv("DB_USER");
+$password = getenv("DB_PASSWORD");
+
+$conn_str = "host=$host port=$port dbname=$dbname user=$user password=$password";
+$conn = pg_connect($conn_str);
+
+if (!$conn) {
+    die("Connection failed: " . pg_last_error());
 }
 ?>
