@@ -29,7 +29,7 @@ if ($email && !isset($_SESSION['verification_email_sent']) && $_SERVER['REQUEST_
     }
 
     // Send the email
-    $verify_link = "http://localhost/SoftwareEng/authentication/verify.php?email=" . urlencode($email) . "&code=" . urlencode($verification_code);
+    $verify_link = "https://softwareeng.onrender.com/authentication/verify.php?email=" . urlencode($email) . "&code=" . urlencode($verification_code);
 
     $mail = new PHPMailer(true);
     try {

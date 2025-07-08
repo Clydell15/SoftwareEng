@@ -120,7 +120,7 @@ exit();
  * Calls AI API
  */
 function callAI($prompt) {
-    $apiKey = 'AIzaSyAtY13_tfNpA51u29rvHN7vdHH8irHUzAQ';
+    $apiKey = getenv('genai_api_key');
     $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-thinking-exp-01-21:generateContent?key=$apiKey";
 
     $data = [
