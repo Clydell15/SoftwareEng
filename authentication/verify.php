@@ -12,7 +12,12 @@ $code = $_GET['code'] ?? '';
 $message = "";
 $success = false;
 
-if ($email && !isset($_SESSION['verification_email_sent']) && $_SERVER['REQUEST_METHOD'] !== 'POST' && !$code) {
+// Use a per-email session flag to prevent multiple sends
+if (!isset($_SESSION['verification_email_sent'])) {
+    $_SESSION['verification_email_sent'] = [];
+}
+
+if ($email && !isset($_SESSION['verification_email_sent'][$email]) && $_SERVER['REQUEST_METHOD'] !== 'POST' && !$code) {
     $stmt = $conn->prepare("SELECT verification_code FROM users WHERE email=?");
     $stmt->bind_param("s", $email);
     $stmt->execute();
@@ -49,7 +54,7 @@ if ($email && !isset($_SESSION['verification_email_sent']) && $_SERVER['REQUEST_
         $mail->Body    = "Click <a href='$verify_link'>here</a> to verify your account.<br>Or copy and paste this link in your browser: $verify_link";
 
         $mail->send();
-        $_SESSION['verification_email_sent'] = true;
+        $_SESSION['verification_email_sent'][$email] = true;
         $message = "Verification email sent! Please check your inbox.";
         $email_sent = true;
     } catch (Exception $e) {
@@ -73,7 +78,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['verify_code'])) {
             $message = "Your account has been verified! You can now log in.";
             $success = true;
             unset($_SESSION['pending_email']);
-            unset($_SESSION['verification_email_sent']);
+            unset($_SESSION['verification_email_sent'][$email]);
+            header("Location: auth.php?form=login");
         } else {
             $message = "Invalid or expired verification code.";
         }
@@ -135,7 +141,7 @@ if ($email && $code && $_SERVER['REQUEST_METHOD'] !== 'POST') {
         $message = "Your account has been verified! You can now log in.";
         $success = true;
         unset($_SESSION['pending_email']);
-        unset($_SESSION['verification_email_sent']);
+        unset($_SESSION['verification_email_sent'][$email]);
     } elseif ($code) {
         $message = "Invalid or expired verification link.";
     }
