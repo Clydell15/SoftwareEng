@@ -201,3 +201,117 @@
         </div>
     </div>
 </div>
+
+<!-- PDF Export Modal -->
+<div class="modal fade" id="pdfExportModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">📄 Export to PDF</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="pdfExportForm">
+                    <div class="mb-4">
+                        <h6 class="fw-bold">Select Pages to Include:</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input page-checkbox" type="checkbox" id="export-todo" value="todo">
+                                    <label class="form-check-label" for="export-todo">📋 To-Do Tasks</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input page-checkbox" type="checkbox" id="export-completed" value="completed">
+                                    <label class="form-check-label" for="export-completed">✅ Completed Tasks</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input page-checkbox" type="checkbox" id="export-categories" value="categories">
+                                    <label class="form-check-label" for="export-categories">🏷️ Categories</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input page-checkbox" type="checkbox" id="export-archive" value="archive">
+                                    <label class="form-check-label" for="export-archive">🗃️ Archive</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Content Selection -->
+                    <div id="content-selection" style="display: none;">
+                        <h6 class="fw-bold">Select Content to Include:</h6>
+                        
+                        <!-- To-Do Tasks Selection -->
+                        <div id="todo-selection" class="content-section" style="display: none;">
+                            <h6 class="text-primary">📋 To-Do Tasks</h6>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="todo-all" checked>
+                                <label class="form-check-label" for="todo-all">All Tasks</label>
+                            </div>
+                            <div id="todo-tasks-list" class="ms-3 mt-2"></div>
+                        </div>
+
+                        <!-- Completed Tasks Selection -->
+                        <div id="completed-selection" class="content-section" style="display: none;">
+                            <h6 class="text-success">✅ Completed Tasks</h6>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="completed-all" checked>
+                                <label class="form-check-label" for="completed-all">All Completed Tasks</label>
+                            </div>
+                            <div id="completed-tasks-list" class="ms-3 mt-2"></div>
+                        </div>
+
+                        <!-- Categories Selection -->
+                        <div id="categories-selection" class="content-section" style="display: none;">
+                            <h6 class="text-info">🏷️ Categories</h6>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="categories-all" checked>
+                                <label class="form-check-label" for="categories-all">All Categories</label>
+                            </div>
+                            <div id="categories-list" class="ms-3 mt-2"></div>
+                        </div>
+
+                        <!-- Archive Selection -->
+                        <div id="archive-selection" class="content-section" style="display: none;">
+                            <h6 class="text-warning">🗃️ Archive</h6>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="archive-all" checked>
+                                <label class="form-check-label" for="archive-all">All Archived Items</label>
+                            </div>
+                            <div id="archive-items-list" class="ms-3 mt-2"></div>
+                        </div>
+                    </div>
+
+                    <!-- Export Options -->
+                    <div class="mt-4">
+                        <h6 class="fw-bold">Export Options:</h6>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="include-subtasks" checked>
+                            <label class="form-check-label" for="include-subtasks">Include Subtasks</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="include-tags" checked>
+                            <label class="form-check-label" for="include-tags">Include Tags/Categories</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="include-due-dates" checked>
+                            <label class="form-check-label" for="include-due-dates">Include Due Dates</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="include-difficulty" checked>
+                            <label class="form-check-label" for="include-difficulty">Include Difficulty Levels</label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="generate-pdf-btn">
+                    <i class="bi bi-file-earmark-pdf"></i> Generate PDF
+                    <span class="spinner-border spinner-border-sm d-none" role="status"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

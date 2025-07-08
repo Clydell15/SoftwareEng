@@ -136,7 +136,7 @@ $user = $_SESSION['user'];
     </div>
 </div>
 
-
+<?php include '../taskflow/component functions/modals.php'; ?>
 <script>
     var userPomodoroSettings = {
         pomodoro: <?php echo json_encode($user['pomodoro_time']); ?>,
@@ -148,5 +148,6 @@ $user = $_SESSION['user'];
 <script src="../assets/javascript/script.js"></script>
 <script src="../assets/javascript/pomodoro.js"></script>
 <script src="../assets/javascript/settings.js"></script>
+<script src="../assets/javascript/pdfexport.js"></script>
 </body>
 </html>

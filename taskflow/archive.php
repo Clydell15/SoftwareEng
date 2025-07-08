@@ -78,6 +78,8 @@ $archivedCategories = $conn->query("SELECT * FROM tags WHERE user_id = $userId A
         </div>
     </div>
 </div>
+
+<?php include '../taskflow/component functions/modals.php'; ?>
 <script>
     var userPomodoroSettings = {
         pomodoro: <?php echo json_encode($user['pomodoro_time']); ?>,
@@ -88,5 +90,6 @@ $archivedCategories = $conn->query("SELECT * FROM tags WHERE user_id = $userId A
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="../assets/javascript/script.js"></script>
 <script src="../assets/javascript/pomodoro.js"></script>
+<script src="../assets/javascript/pdfexport.js"></script>
 </body>
 </html>

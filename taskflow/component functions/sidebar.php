@@ -44,6 +44,12 @@ $username = $_SESSION['username'] ?? 'Guest';
 
     <!-- Bottom Section -->
     <div class="mt-auto">
+        <div class="submenu">
+            <button class="btn btn-outline-info w-100" data-bs-toggle="modal" data-bs-target="#pdfExportModal">
+                📄 Export PDF
+            </button>
+        </div>
+
         <button id="toggleThemeBtn" class="btn btn-outline-dark w-100">
             <span id="themeIcon">🌙</span> 
         </button>

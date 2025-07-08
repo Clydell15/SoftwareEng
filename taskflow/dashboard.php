@@ -175,5 +175,6 @@ include '../authentication/session.php';
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="../assets/javascript/script.js"></script>
 <script src="../assets/javascript/pomodoro.js"></script>
+<script src="../assets/javascript/pdfexport.js"></script>
 </body>
 </html>
