@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: php-mysql-app
+    env: docker
+    plan: free
+    region: singapore
+    dockerContext: .
+    dockerfilePath: Dockerfile
+    envVars:
+      - key: DB_HOST
+        value: your-mysql-host
+      - key: DB_NAME
+        value: your-db-name
+      - key: DB_USER
+        value: your-username
+      - key: DB_PASSWORD
+        value: your-password
