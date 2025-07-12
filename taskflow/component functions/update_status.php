@@ -19,12 +19,22 @@ $completed_at = ($status === "completed") ? date("Y-m-d H:i:s") : null;
 $conn->begin_transaction();
 
 try {
-    // Step 1: Shift all existing tasks down by 1
-    $shiftQuery = "UPDATE tasks SET position = position + 1 WHERE user_id = (SELECT user_id FROM tasks WHERE id = ?)";
+    // Step 1: Get the user_id first
+    $selectUserQuery = "SELECT user_id FROM tasks WHERE id = ?";
+    $stmtSelectUser = $conn->prepare($selectUserQuery);
+    $stmtSelectUser->bind_param("i", $task_id);
+    $stmtSelectUser->execute();
+    $stmtSelectUser->bind_result($user_id);
+    $stmtSelectUser->fetch();
+    $stmtSelectUser->close();
+
+    // Then update positions
+    $shiftQuery = "UPDATE tasks SET position = position + 1 WHERE user_id = ?";
     $stmtShift = $conn->prepare($shiftQuery);
-    $stmtShift->bind_param("i", $task_id);
+    $stmtShift->bind_param("i", $user_id);
     $stmtShift->execute();
     $stmtShift->close();
+
 
     // Step 2: Set the updated task's position to 1
     $updateQuery = "UPDATE tasks SET status = ?, completed_at = ?, position = 1 WHERE id = ?";
