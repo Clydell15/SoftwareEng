@@ -51,18 +51,23 @@ try {
         $stmtSubtasks->close();
     }
 
-    // Step 5: If a subtask is marked uncompleted, set its parent task to position 1
-    $parentUpdateQuery = "
-        UPDATE tasks
-        JOIN (SELECT parent_task_id FROM tasks WHERE id = ?) AS parent
-        ON tasks.id = parent.parent_task_id
-        SET tasks.position = 1
-        WHERE parent.parent_task_id IS NOT NULL
-    ";
-    $stmtParent = $conn->prepare($parentUpdateQuery);
-    $stmtParent->bind_param("i", $task_id);
-    $stmtParent->execute();
-    $stmtParent->close();
+    // Step 5: Get parent_task_id first
+    $selectParentQuery = "SELECT parent_task_id FROM tasks WHERE id = ?";
+    $stmtSelect = $conn->prepare($selectParentQuery);
+    $stmtSelect->bind_param("i", $task_id);
+    $stmtSelect->execute();
+    $stmtSelect->bind_result($parent_task_id);
+    $stmtSelect->fetch();
+    $stmtSelect->close();
+
+    // Only update if it's a valid subtask
+    if ($parent_task_id !== null) {
+        $parentUpdateQuery = "UPDATE tasks SET position = 1 WHERE id = ?";
+        $stmtParent = $conn->prepare($parentUpdateQuery);
+        $stmtParent->bind_param("i", $parent_task_id);
+        $stmtParent->execute();
+        $stmtParent->close();
+    }
 
     $conn->commit();
 
