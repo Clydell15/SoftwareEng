@@ -60,7 +60,7 @@ try {
     $pdf->SetSubject('Task Management Export');
 
     // Set default header data
-    $pdf->SetHeaderData('', 0, 'TaskFlow Manager', 'Generated on ' . date('Y-m-d') . ' at ' . date('g:i A'));
+    $pdf->SetHeaderData('', 0, 'TaskFlow Manager', 'Generated on ' . date('F j, Y') . ' at ' . date('g:i A'));
 
     // Set header and footer fonts
     $pdf->setHeaderFont(Array(PDF_FONT_NAME_MAIN, '', PDF_FONT_SIZE_MAIN));
@@ -88,6 +88,7 @@ try {
     // Generate content for each selected page
     $html = '<h1 style="color: #2c3e50; text-align: center;">TaskFlow Manager</h1>';
     $html .= '<p style="text-align: center; color: #7f8c8d; font-size: 1.1em; margin-bottom: 0;">Prepared by: ' . htmlspecialchars($user['email']) . '</p>';
+    $html .= '<p style="text-align: center; color: #7f8c8d;">Generated on: ' . date('F j, Y \a\t g:i A') . '</p>';
     $html .= '<hr>';
 
     foreach ($input['pages'] as $pageType) {
