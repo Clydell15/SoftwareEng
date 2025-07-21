@@ -60,7 +60,7 @@ try {
     $pdf->SetSubject('Task Management Export');
 
     // Set default header data
-    $pdf->SetHeaderData('', 0, 'TaskFlow Manager', 'Generated on ' . date('Y-m-d H:i:s'));
+    $pdf->SetHeaderData('', 0, 'TaskFlow Manager', 'Generated on ' . date('Y-m-d') . ' at ' . date('g:i A'));
 
     // Set header and footer fonts
     $pdf->setHeaderFont(Array(PDF_FONT_NAME_MAIN, '', PDF_FONT_SIZE_MAIN));
@@ -87,6 +87,8 @@ try {
 
     // Generate content for each selected page
     $html = '<h1 style="color: #2c3e50; text-align: center;">TaskFlow Manager</h1>';
+    $html .= '<p style="text-align: center; color: #7f8c8d; font-size: 1.1em; margin-bottom: 0;">Prepared by: ' . htmlspecialchars($user['email']) . '</p>';
+    $html .= '<p style="text-align: center; color: #7f8c8d;">Generated on: ' . date('F j, Y \a\t g:i A') . '</p>';
     $html .= '<hr>';
 
     foreach ($input['pages'] as $pageType) {
@@ -237,20 +239,20 @@ function generateTodoContent($options, $conn, $userId) {
     $totalCols = $baseCols + $dynamicCols;
     $baseWidth = $dynamicCols === 0 ? 50 : round(100 / $totalCols, 2);
     $dynamicWidth = $dynamicCols > 0 ? round(100 / $totalCols, 2) : 0;
-    $headerBg = 'rgb(184, 212, 232)';
+    $headerBg = 'rgb(227, 117, 105)';
     $html .= '<table border="1" cellpadding="5" cellspacing="0" style="width: 100%; border-collapse: collapse;">';
     $html .= '<thead style="background-color: ' . $headerBg . ';">';
     $html .= '<tr>';
-    $html .= '<th style="width: ' . $baseWidth . '%; background-color: ' . $headerBg . '; color: rgb(21, 139, 217)">Task</th>';
-    $html .= '<th style="width: ' . $baseWidth . '%; background-color: ' . $headerBg . '; color: rgb(21, 139, 217)">Status</th>';
+    $html .= '<th style="width: ' . $baseWidth . '%; background-color: ' . $headerBg . ';">Task</th>';
+    $html .= '<th style="width: ' . $baseWidth . '%; background-color: ' . $headerBg . ';">Status</th>';
     if ($includeDifficulty) {
-        $html .= '<th style="width: ' . $dynamicWidth . '%; background-color: ' . $headerBg . '; color:rgb(21, 139, 217)">Difficulty</th>';
+        $html .= '<th style="width: ' . $dynamicWidth . '%; background-color: ' . $headerBg . ';">Difficulty</th>';
     }
     if ($includeDueDates) {
-        $html .= '<th style="width: ' . $dynamicWidth . '%; background-color: ' . $headerBg . '; color: rgb(21, 139, 217)">Due Date</th>';
+        $html .= '<th style="width: ' . $dynamicWidth . '%; background-color: ' . $headerBg . ';">Due Date</th>';
     }
     if ($includeTags) {
-        $html .= '<th style="width: ' . $dynamicWidth . '%; background-color: ' . $headerBg . '; color: rgb(21, 139, 217)">Tags</th>';
+        $html .= '<th style="width: ' . $dynamicWidth . '%; background-color: ' . $headerBg . ';">Tags</th>';
     }
     $html .= '</tr>';
     $html .= '</thead><tbody>';
@@ -274,9 +276,10 @@ function generateTodoContent($options, $conn, $userId) {
                 
                 if ($subtasks !== false && !empty($subtasks)) {
                     $html .= '<br><strong>Subtasks:</strong>';
-                    $html .= '<ul style="margin: 2px 0; padding-left: 12px;">';
+                    $html .= '<ul style="margin: 5px 0; padding-left: 20px;">';
                     foreach ($subtasks as $subtask) {
-                        $html .= '<li>' . htmlspecialchars($subtask['title']) . '</li>';
+                        $checkmark = $subtask['is_completed'] ? '[X]' : '[ ]';
+                        $html .= '<li>' . $checkmark . ' ' . htmlspecialchars($subtask['title']) . '</li>';
                     }
                     $html .= '</ul>';
                 }
@@ -287,9 +290,10 @@ function generateTodoContent($options, $conn, $userId) {
                 
                 if ($subtasks !== false && !empty($subtasks)) {
                     $html .= '<br><strong>Subtasks:</strong>';
-                    $html .= '<ul style="margin: 2px 0; padding-left: 12px;">';
+                    $html .= '<ul style="margin: 5px 0; padding-left: 20px;">';
                     foreach ($subtasks as $subtask) {
-                        $html .= '<li>' . htmlspecialchars($subtask['title']) . '</li>';
+                        $checkmark = $subtask['status'] === 'completed' ? '[X]' : '[ ]';
+                        $html .= '<li>' . $checkmark . ' ' . htmlspecialchars($subtask['title']) . '</li>';
                     }
                     $html .= '</ul>';
                 }
@@ -365,14 +369,14 @@ function generateCompletedContent($options, $conn, $userId) {
     $totalCols = $baseCols + $dynamicCols;
     $baseWidth = $dynamicCols === 0 ? 50 : round(100 / $totalCols, 2);
     $dynamicWidth = $dynamicCols > 0 ? round(100 / $totalCols, 2) : 0;
-    $headerBg = 'rgb(186, 233, 206)';
+    $headerBg = 'rgb(93, 169, 125)';
     $html .= '<table border="1" cellpadding="5" cellspacing="0" style="width: 100%; border-collapse: collapse;">';
     $html .= '<thead style="background-color: ' . $headerBg . ';">';
     $html .= '<tr>';
-    $html .= '<th style="width: ' . $baseWidth . '%; background-color: ' . $headerBg . '; color:rgb(20, 138, 69)">Task</th>';
-    $html .= '<th style="width: ' . $baseWidth . '%; background-color: ' . $headerBg . '; color: rgb(20, 138, 69)">Completed Date</th>';
+    $html .= '<th style="width: ' . $baseWidth . '%; background-color: ' . $headerBg . ';">Task</th>';
+    $html .= '<th style="width: ' . $baseWidth . '%; background-color: ' . $headerBg . ';">Completed Date</th>';
     if ($includeDifficulty) {
-        $html .= '<th style="width: ' . $dynamicWidth . '%; background-color: ' . $headerBg . '; color: rgb(20, 138, 69) ">Difficulty</th>';
+        $html .= '<th style="width: ' . $dynamicWidth . '%; background-color: ' . $headerBg . ';">Difficulty</th>';
     }
     $html .= '</tr>';
     $html .= '</thead><tbody>';
@@ -455,14 +459,14 @@ function generateCategoriesContent($options, $conn, $userId) {
             $colWidths = array_fill(0, $colCount, round(100 / $colCount, 2));
         }
     } else {
+        // Default: 30% for name, 70% for tasks
         $colWidths = [50, 50];
     }
-    $headerBg = '#f4ecf7';
     $html .= '<table border="1" cellpadding="5" cellspacing="0" style="width: 100%; border-collapse: collapse;">';
-    $html .= '<thead style="background-color: ' . $headerBg . ';">';
+    $html .= '<thead style="background-color: #f4ecf7;">';
     $html .= '<tr>';
-    $html .= '<th style="width: ' . $colWidths[0] . '%; background-color: ' . $headerBg . '; color:rgb(129, 42, 163)">Category Name</th>';
-    $html .= '<th style="width: ' . $colWidths[1] . '%; background-color: ' . $headerBg . '; color: rgb(129, 42, 163) ">Associated Tasks</th>';
+    $html .= '<th style="width: ' . $colWidths[0] . '%;">Category Name</th>';
+    $html .= '<th style="width: ' . $colWidths[1] . '%;">Associated Tasks</th>';
     $html .= '</tr>';
     $html .= '</thead><tbody>';
     
