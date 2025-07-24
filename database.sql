@@ -15,10 +15,10 @@ CREATE TABLE users (
     longbreak_time INT DEFAULT 15,
     short_breaks INT DEFAULT 0,
     long_breaks INT DEFAULT 0,
-    pomodoro_goal INT DEFAULT 8
+    pomodoro_goal INT DEFAULT 8,
     is_verified TINYINT(1) DEFAULT 0,
-    verification_code VARCHAR(255) DEFAULT NULL;
-    forgot_code VARCHAR(255) DEFAULT NULL;
+    verification_code VARCHAR(255) DEFAULT NULL,
+    forgot_code VARCHAR(255) DEFAULT NULL
 );
 -- Tags Table
 CREATE TABLE tags (
