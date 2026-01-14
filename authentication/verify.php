@@ -42,7 +42,7 @@ if ($email && !isset($_SESSION['verification_email_sent'][$email]) && $_SERVER['
         $mail->Host       = 'smtp.gmail.com';
         $mail->SMTPAuth   = true;
         $mail->Username   = 'taskflowmanagerverify@gmail.com';
-        $mail->Password   = 'lotveclnpeqmoyyn';
+        $mail->Password   = '';
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
         $mail->Port       = 587;
 
